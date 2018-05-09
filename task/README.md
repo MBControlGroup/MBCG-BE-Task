@@ -91,8 +91,8 @@ request:
 response:
 	200 OK
 	{
-		"total_mems":200,				// 所有下属单位总人数.因为一个人可在多个组织内,故返回单位人数
-		"orgs_detail":					// 组织详情
+		"total_mems":200,		// 所有下属单位总人数.因为一个人可在多个组织内,故返回单位人数
+		"orgs_detail":			// 组织详情
 		{
 			"office_name":"海珠人武部",		// 单位名称
 			"orgs":[				// 单位所含有的组织
@@ -217,7 +217,9 @@ response:
 	
 ### 查看执行中任务列表 [/task/working/{item_counts_per_page}/{cur_page}] [GET]
 item_counts_per_page: 每页显示执行中任务的数目
+
 cur_page: 当前页数
+
 由于任务数量可能会很多,故分页显示
 ```
 request:
@@ -303,7 +305,9 @@ response:
 
 #### 查看执行中任务的人员 [/task/working/detail/mem/{task_id}] [GET]
 人员的显示按照指挥官选取的单位、组织、个人来显示.
+
 若指挥官选取的是"海珠区一排"(属于组织),则显示"orgs",其他为空.若选取的是个人,则显示"indiv",其他为空
+
 暂不显示单位、组织的上下级关系
 ```
 request:
@@ -405,7 +409,9 @@ response:
 
 #### 查看执行中任务响应人员 [/task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
 item_counts_per_page: 每页显示人员的数量
+
 cur_page: 当前页数
+
 跟任务列表类似,列出人员姓名、响应状态、所属组织/单位、直属指挥官、耗时等信息
 
 ### 执行中任务集合情况 [/task/working/gather]
@@ -562,19 +568,20 @@ response:
 ```
 
 #### 查看已完成任务响应人员 [/task/done/response/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
-// item_counts_per_page: 每页显示人员的数量
-// cur_page: 当前页数
-// 与"查看执行中任务相应人员"类似
+item_counts_per_page: 每页显示人员的数量
+cur_page: 当前页数
+与"查看执行中任务相应人员"类似
 
 ### 已完成任务集合情况 [/task/done/gather/{task_id}]
 
 #### 查看已完成任务集合情况 [/task/done/gather/{task_id}] [GET]
+```
 request:
 	null
 response:
 	200 OK
 	{
-		"check_counts"	:30			// 签到人数
+		"check_counts"	:30		// 签到人数
 		"avg_chk_time"	:"00:50:31"	// 平均签到耗时
 	}
 
@@ -593,6 +600,7 @@ response:
 	{
 		"cnmsg":"您的权限不足，无法获取该资源"
 	}
+```
 
 #### 查看已完成任务集合人员 [/task/done/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
-// 与"查看执行中任务相应人员"类似
+与"查看执行中任务相应人员"类似
