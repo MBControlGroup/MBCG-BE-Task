@@ -1,6 +1,6 @@
 # 任务 [/task]
 
-该API的简化版在
+该 REST API 的简化版在
 https://mubu.com/doc/Hn0KEDKdm
 
 ## 发布任务 [/task] [POST]
@@ -58,7 +58,7 @@ response:
 		"places"	:[	// 单位/组织常用地点
 			{
 				"place_id"	:123456,	// 常用集合地点id
-				"place_name":"新天地",	// 常用集合地点名称
+				"place_name"	:"新天地",	// 常用集合地点名称
 				"place_lat"	:39.071510,	// 常用集合地点纬度，不知前端需不需要
 				"place_lng"	:117.190091	// 常用集合地点经度
 			},
