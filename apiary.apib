@@ -5,28 +5,425 @@ HOST: http://polls.apiblueprint.org/
 
 任务管理API
 
-## 发布任务
+关于RESTful API和JSON数据格式的说明，请查看Github：
 
-### 任务 [/task]
+https://github.com/MBControlGroup/MBCG-BE-Task
 
-#### 发布任务 [POST]
+## 任务 [/task]
+
+### 发布任务 [POST]
 
 + Request (application/json)
 
         {
-            
+            "title": "消防演习",
+            "mem_count": 50,
+            "launch_datetime": "2018-05-06 17:04:01",
+            "gather_datetime": "2018-05-07 20:00:00",
+            "detail": "第二次消防演习",
+            "gather_place_id": 123456,
+            "gather_place_name": "小谷围消防局",
+            "gather_place_lat": 39.071510,
+            "gather_place_lng": 117.190091,
+            "finish_datetime": "2018-05-07 21:00:00",
+            "accept_org_ids": [11,22],
+            "accept_office_ids": [11,22],
+            "accept_soldr_ids": [11,22]
         }
         
-+ Response (application/json)
++ Response 201
+
+### 获取基本信息 [GET]
+
++ Response 200 (application/json)
 
     + Body
-    
-            {
-            
+
+        {
+            "is_office": true,
+            "places": [
+                {
+                    "place_id": 123456,
+                    "place_name": "新天地正门",
+                    "place_lat": 39.071510,
+                    "place_lng": 117.190091
+                },{
+                    "place_id": 654321,
+                    "place_name": "中山大学北门",
+                    "place_lat": 40.071510,
+                    "place_lng": 102.190091
+                }
+            ]
+        }
+
+### 结束任务 [PUT]
+
++ Request (application/json)
+
+    {
+        "task_id": 123456
+    }
+
++ Response 204
+
+        
+## 下属组织及成员 [/task/orgs]
+
+### 获取所有下属组织及成员 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "total_mems": 200,
+            "orgs_detail": {
+                "office_name": "海珠人武部",
+                "orgs": [
+                    {
+                        "org_id": 123456,
+                        "name": "海珠区一排",
+                        "members": [
+                            {
+                                "soldier_id": 123456,
+                                "name": "张三",
+                                "is_admin": true
+                            },{
+                                "soldier_id": 654321,
+                                "name": "李四",
+                                "is_admin": false
+                            }
+                        ],
+                        "lower_orgs_id":[654321]
+                    },{
+                        "org_id": 654321,
+                        "name": "海珠区二排",
+                        "members": [
+                            {
+                                "soldier_id": 123456,
+                                "name": "张三",
+                                "is_admin": true
+                            },{
+                                "soldier_id": 654321,
+                                "name": "李四",
+                                "is_admin": false
+                            }
+                        ],
+                        "lower_orgs_id":[]
+                    }
+                ],
+                "lower_offices":[
+                    {
+                        "office_name": "琶洲街道",
+                        "orgs": [
+                            {
+                                "org_id": 123456,
+                                "name": "琶洲一连",
+                                "members": [
+                                    {
+                                        "soldier_id": 123456,
+                                        "name": "张三",
+                                        "is_admin": true
+                                    }
+                                ],
+                                "lower_orgs_id":[654321]
+                            },{
+                                "org_id": 654321,
+                                "name": "琶洲二连",
+                                "members": [
+                                    {
+                                        "soldier_id": 654321,
+                                        "name": "李四",
+                                        "is_admin": false
+                                    }
+                                ],
+                                "lower_orgs_id":[]
+                            }
+                        ],
+                        "lower_offices":[]
+                    }
+                ]
             }
+        }
 
-#### 获取基本信息 [GET]
+## 下属单位及成员 [/task/offices]
 
-### 下属组织及成员 [/task/orgs]
+### 获取所有下属单位及成员 [GET]
 
-###
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "total_mems": 200,
+            "office_detail":
+            {
+                "office_id": 123456,
+                "name": "海珠人武部",
+                "memebers": [
+                    {
+                        "soldier_id": 123456,
+                        "name": "李四"
+                    },
+                    {
+                        "soldier_id": 654321,
+                        "name": "张三"
+                    }
+                ]
+                "lower_offices": [
+                    {
+                        "office_id": 123456,
+                        "name": "琶洲街道",
+                        "memebers": [
+                            {
+                                "soldier_id": 123456,
+                                "name": "李四"
+                            },
+                            {
+                                "soldier_id": 654321,
+                                "name": "张三"
+                            }
+                        ]
+                        "lower_offices": []
+                    }
+                ]
+            }
+        }
+
+
+
+## 执行中任务列表 [/tasks/working/20/1]
+
+### 查看执行中任务列表 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "total_pages": 1,
+            "total_tasks": 5,
+            "data":[
+                {
+                    "title": "消防演习",
+                    "launch_admin": "海珠区一排",
+                    "launch_datetime": "2018-05-06 12:00:00",
+                    "gather_datetime": "2018-05-06 13:00:00",
+                    "gather_place": "新天地",
+                    "status": "zj",
+                    "detail": 0.4,
+                    "mem_count": 30
+                },{
+                    "title": "紧急任务",
+                    "launch_admin": "琶洲一连",
+                    "launch_datetime": "2018-05-16 15:00:00",
+                    "gather_datetime": "2018-05-16 19:00:00",
+                    "gather_place": "小谷围派出所",
+                    "status": "jh",
+                    "detail": 0.8,
+                    "mem_count": 30
+                }
+            ]
+        }
+
+## 已完成任务列表 [/tasks/done/20/1]
+
+### 查看已完成任务列表 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "total_pages": 1,
+            "total_tasks": 5,
+            "data":[
+                {
+                    "title": "消防演习",
+                    "launch_admin": "海珠区一排",
+                    "launch_datetime": "2018-05-06 12:00:00",
+                    "gather_place": "新天地",
+                    "mem_count": 30,
+                    "response_count": 50,
+                    "accept_count": 30,
+                    "check_count": 30
+                },{
+                    "title": "紧急任务",
+                    "launch_admin": "琶洲一连",
+                    "launch_datetime": "2018-05-16 15:00:00",
+                    "gather_place": "小谷围派出所",
+                    "mem_count": 50,
+                    "response_count": 100,
+                    "accept_count": 50,
+                    "check_count": 50
+                }
+            ]
+        }
+
+
+## 任务详情 [/task/detail/123456]
+
+### 查看任务详情 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "task_id": 123456,
+            "title": "消防演习",
+            "launch_admin": "海珠区一排",
+            "launch_datetime": "2018-05-06 12:00:00",
+            "gather_datetime": "2018-05-06 13:00:00",
+            "finish_datetime": "2018-05-06 20:00:00",
+            "gather_place": "新天地",
+            "place_lat": 39.071510,
+            "place_lng": 117.190091,
+            "status": "jh",
+            "detail": 0.4,
+            "mem_count": 30
+        }
+
+## 参与任务的人员 [/task/detail/mem/123456]
+
+### 查看参与任务的人员 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "offices":[
+                {
+                    "name": "海珠人武部",
+                    "office_level": "D",
+                    "members":[
+                        {
+                            "soldier_id": 123456,
+                            "name": "王五",
+                            "im_user_id": 123456
+                        }
+                    ]
+                }
+            ],
+            "orgs":[
+                {
+                    "name": "小谷围一排",
+                    "orgs_level": "S",
+                    "members": [
+                        {
+                            "soldier_id": 123456,
+                            "name": "王五",
+                            "im_user_id": 123456,
+                            "is_admin": true
+                        }
+                    ]
+                }
+            ],
+            "indiv":[
+                {
+                    "soldier_id": 123456,
+                    "name": "张三",
+                    "serve_office": "白云人武部",
+                    "serve_orgs": "海珠区一排",
+                    "im_user_id": 123456
+                }
+            ]
+        }
+
+
+
+## 任务响应情况 [/task/response/123456]
+
+### 查看任务响应情况 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "mem_count": 30,
+            "notify_count": 100,
+            "response_count": 70,
+            "accept_count": 30,
+            "avg_acpt_time": "00:30:10"
+        }
+
+## 任务的响应人员列表 [/task/working/response/mem/123456/20/1]
+
+### 查看任务的响应人员列表 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+    {
+        "total_pages": 1,
+        "total_mem": 10,
+        "data":[
+            {
+                "soldier_id": 123456,
+                "name": "张三",
+                "im_user_id": 123456,
+                "phone": 13600000000,
+                "serve_office": "海珠人武部",
+                "status": "AC",
+                "resp_time": "2018-05-06 12:02:00"
+            },{
+                "soldier_id": 654321,
+                "name": "李四",
+                "im_user_id": 654321,
+                "phone": 13611111111,
+                "serve_office": "海珠人武部",
+                "status": "AC",
+                "resp_time": "2018-05-06 12:12:00"
+            }
+        ]
+    }
+
+
+## 任务集合情况 [/task/gather/123456]
+
+### 查看任务集合情况 [GET]
+
++ Response 200 (application/json)
+
+    + Body
+
+        {
+            "ac_counts": 50,
+            "check_counts": 30,
+            "avg_chk_time": "00:50:31"
+        }
+
+## 任务的集合人员列表 [/task/gather/mem/123456/20/1]
+
+### 查看任务的集合人员列表 [GET]
+
++ Response 200 (applicaton/json)
+
+    + Body
+
+        {
+            "total_pages": 1,
+            "total_mem": 10,
+            "data":[
+                {
+                    "soldier_id": 123456,
+                    "name": "张三",
+                    "im_user_id": 123456,
+                    "phone": 13600000000,
+                    "serve_office": "海珠人武部",
+                    "status": 1,
+                    "check_time": "2018-05-06 15:02:00"
+                },{
+                    "soldier_id": 654321,
+                    "name": "李四",
+                    "im_user_id": 64321,
+                    "phone": 13611111111,
+                    "serve_office": "海珠人武部",
+                    "status": 0,
+                    "check_time": ""
+                }
+            ]
+        }
