@@ -1,0 +1,37 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "h4cGt0ErpC0LgypzIeCoHCqqM1o=",
+			"path": "github.com/codegangsta/negroni",
+			"revision": "1b4412b5af55badc44e606777749f16bf519f4c6",
+			"revisionTime": "2017-11-05T18:32:00Z"
+		},
+		{
+			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "YuYKzn2jczaM6DQcFDmukvAHUX4=",
+			"path": "github.com/gorilla/mux",
+			"revision": "7746112ece9db80c5f20a18f114a9bdb96abf0be",
+			"revisionTime": "2018-04-28T10:24:30Z"
+		},
+		{
+			"checksumSHA1": "Kby2HCu2WOsAHbS7x6zgWo5Ic4Q=",
+			"path": "github.com/spf13/pflag",
+			"revision": "97afa5e7ca8a08a383cb259e06636b5e2cc7897f",
+			"revisionTime": "2017-10-20T11:06:17Z"
+		},
+		{
+			"checksumSHA1": "/CkShsXSmW4032TjVej9ZwhjxOY=",
+			"path": "github.com/unrolled/render",
+			"revision": "65450fb6b2d3595beca39f969c411db8f8d5c806",
+			"revisionTime": "2017-11-02T16:21:32Z"
+		}
+	],
+	"rootPath": "task-mbcontrolgroup"
+}
