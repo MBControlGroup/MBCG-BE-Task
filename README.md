@@ -2,8 +2,9 @@
 
 RESTful API 与 JSON 数据格式
 
-该 REST API 的简化版在
-https://mubu.com/doc/Hn0KEDKdm
+[REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
+
+[Apiary](https://task25.docs.apiary.io/#)
 
 ## 任务
 
