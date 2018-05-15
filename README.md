@@ -17,7 +17,7 @@ request:
 	"gather_datetime"	:"2018-05-07 20:00:00",	// 集合时间
 	"detail"		:"任务详情",		// 任务详情
 	"gather_place_id"	:123456,		// 集合地点id，为-1视为新建地点
-	"gather_place_name"	:"集合地点名称",	// 可缺省
+	"gather_place_name"	:"集合地点名称",		// 可缺省
 	"gather_place_lat"	:39.071510,		// 集合地点纬度，可缺省
 	"gather_place_lng"	:117.190091,		// 集合地点经度，可缺省
 	"finish_datetime"	:"2018-05-07 21:00:00",	// 任务结束时间
@@ -28,20 +28,10 @@ request:
 response:
 	201 Created
 
-	202 Failed
-	{
-		"cnmsg":"发布任务失败，XXX有误"
-	}
-
 	307 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法进行操作"
 	}
 
 	500 Internal Server Error
@@ -75,16 +65,6 @@ response:
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
 	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法进行操作"
-	}
-
-	500 Internal Server Error
-	{
-		"cnmsg":"很抱歉,服务器出错了"
-	}
 ```
 ### 结束任务 [/task] [PUT]
 ```
@@ -99,16 +79,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	400 Bad Request
-	{
-		"cnmsg":"很抱歉,服务器没有找到该任务"
-	}
-	
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法进行操作"
 	}
 
 	500 Internal Server Error
@@ -159,16 +129,6 @@ response:
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
 	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法进行操作"
-	}
-
-	500 Internal Server Error
-	{
-		"cnmsg":"很抱歉,服务器出错了"
-	}
 ```
 
 ### 获取所有下属单位及人员 [/task/offices] [GET]
@@ -201,16 +161,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法进行操作"
-	}
-
-	500 Internal Server Error
-	{
-		"cnmsg":"很抱歉,服务器出错了"
 	}
 ```
 
@@ -255,16 +205,6 @@ response:
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
 	}
-
-	400 Bad Request
-	{
-		"cnmsg":"参数错误"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
-	}
 ```
 
 ## 查看已完成任务列表 [/task/done/{item_counts_per_page}/{cur_page}] [GET]
@@ -298,16 +238,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	400 Bad Request
-	{
-		"cnmsg":"参数错误"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
 	}
 ```
 
@@ -343,16 +273,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	400 Bad Request
-	{
-		"cnmsg":"很抱歉,服务器没有找到该任务"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
 	}
 ```
 
@@ -416,16 +336,6 @@ response:
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
 	}
-
-	400 Bad Request
-	{
-		"cnmsg":"很抱歉,服务器没有找到该任务"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
-	}
 ```
 
 
@@ -452,16 +362,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	400 Bad Request
-	{
-		"cnmsg":"很抱歉,服务器没有找到该任务"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
 	}
 ```
 
@@ -490,6 +390,12 @@ response:
 			...
 		]
 	}
+
+	307 Temporary Redirect
+	{
+		"cnmsg":"登录超时，请重新登录",
+		"url":"/user"
+	}
 ```
 
 ## 任务集合情况
@@ -513,16 +419,6 @@ response:
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
-	}
-
-	400 Bad Request
-	{
-		"cnmsg":"很抱歉,服务器没有找到该任务"
-	}
-
-	403 Forbidden
-	{
-		"cnmsg":"您的权限不足，无法获取该资源"
 	}
 ```
 
@@ -550,5 +446,11 @@ response:
 			},
 			...
 		]
+	}
+
+	307 Temporary Redirect
+	{
+		"cnmsg":"登录超时，请重新登录",
+		"url":"/user"
 	}
 ```
