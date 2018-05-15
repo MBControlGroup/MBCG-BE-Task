@@ -230,7 +230,7 @@ response:
 				"gather_place"		:"新天地",		// 集合地点
 				"mem_count"		:30,			// 目标征集人数
 				"response_count"	:100,			// 响应人数
-				"accept_count"		:30,			// 接收人数
+				"accept_count"		:30,			// 接受人数
 				"check_count"		:30			// 签到人数
 			},
 			...
@@ -245,7 +245,7 @@ response:
 ```
 
 
-**下面"任务详情","任务响应情况","任务集合情况"参考了管理端的原型设计**
+**下面"任务详情", "任务响应情况", "任务集合情况"参考了管理端的原型设计**
 ## 任务详情
 "任务详情"包括任务的所有详细信息, 地图, 人员地理位置. (人员提供了即时通讯id, 供即时通讯使用)
 
@@ -354,10 +354,10 @@ request:
 response:
 	200 OK
 	{
-		"mem_count"	:30		// 目标征集人数
-		"notify_count"	:100		// 通知人数
-		"response_count":70		// 响应人数
-		"accept_count"	:30		// 接受人数
+		"mem_count"	:30,	// 目标征集人数
+		"notify_count"	:100,		// 通知人数
+		"response_count":70,		// 响应人数
+		"accept_count"	:30,		// 接受人数
 		"avg_acpt_time"	:"00:30:10"	// 平均接受任务耗时
 	}
 
