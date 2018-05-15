@@ -1,4 +1,4 @@
-# 任务管理 [/task] [/tasks]
+# 任务管理 [/task]
 
 RESTful API 与 JSON 数据格式
 
