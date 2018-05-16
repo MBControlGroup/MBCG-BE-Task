@@ -1,4 +1,4 @@
-package task
+package service
 
 import (
 	"bytes"
@@ -55,4 +55,8 @@ func GetAdminAndType(token string) (adminID uint, isOff bool, err error) {
 		return adminID, false, err
 	}
 	return adminID, isOff, nil
+}
+
+func CreateTask(adminID uint, t Task) {
+
 }
