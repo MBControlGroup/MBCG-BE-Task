@@ -3,10 +3,22 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "MoE8R3ctm+nYy6PL5BNqelLtN04=",
+			"path": "github.com/astaxie/beego/orm",
+			"revision": "f16688817aa428d10361394015b40d096b680542",
+			"revisionTime": "2017-12-18T11:18:59Z"
+		},
+		{
 			"checksumSHA1": "h4cGt0ErpC0LgypzIeCoHCqqM1o=",
 			"path": "github.com/codegangsta/negroni",
 			"revision": "1b4412b5af55badc44e606777749f16bf519f4c6",
 			"revisionTime": "2017-11-05T18:32:00Z"
+		},
+		{
+			"checksumSHA1": "rAnxK4LbUVYQh6VwXkq/89JaroY=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "cd4cb909ce1a31435164be29bf3682031f61539a",
+			"revisionTime": "2017-11-17T11:51:24Z"
 		},
 		{
 			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
@@ -33,5 +45,5 @@
 			"revisionTime": "2017-11-02T16:21:32Z"
 		}
 	],
-	"rootPath": "task-mbcontrolgroup"
+	"rootPath": "task-MBCG"
 }
