@@ -16,7 +16,7 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 // 获取基本信息, /task [GET]
 func basicInfo(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		r.ParseForm()
 	}
 }
 
