@@ -37,8 +37,9 @@ func basicInfo(formatter *render.Render) http.HandlerFunc {
 // 发布任务, /task [POST]
 func createTask(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie(tokenCookieName) // 获取cookie中的token
-		if err != nil || c.Value == "" {    // 用户可能登录超时，需重新登录
+		// 获取cookie中的token
+		c, err := r.Cookie(tokenCookieName)
+		if err != nil || c.Value == "" { // 用户可能登录超时，需重新登录
 			formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 			panic(err)
 		}
@@ -51,31 +52,23 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 			panic(err)
 		}
 
-		// 获取post信息
-		sbody, _ := ioutil.ReadAll(r.Body) // 读取http的json参数
-		body, _ := url.QueryUnescape(string(sbody))
+		// 获取http.Request中的Body
+		reqBody, _ := ioutil.ReadAll(r.Body)              // 读取http.Request的Body
+		reqBytes, _ := url.QueryUnescape(string(reqBody)) // 把Body转为bytes
 		defer r.Body.Close()
 
-		var t Task
-		json.Unmarshal([]byte(body), &t) // 从json中解析Task的内容
-		CreateTask(adminID, t)
+		// 解析Request.Body中的JSON数据
+		var (
+			reqTask  Task
+			reqPlace Place
+			reqAcMem AcMem
+		)
+		reqTask.AdminID = adminID
+		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
+		json.Unmarshal([]byte(reqBytes), &reqPlace) // 从json中解析Place的内容
+		json.Unmarshal([]byte(reqBytes), &reqAcMem) // 从json中解析AcMem接收集合通知的成员
+		CreateTask(&reqTask, &reqPlace, &reqAcMem)
 	}
-}
-
-type Task struct {
-	Title     string  `json:"title"`
-	Count     int     `json:"mem_count"`
-	Launch    string  `json:"launch_datetime"`
-	Gather    string  `json:"gather_datetime"`
-	Detail    string  `json:"detail"`
-	PlaceID   int     `json:"gather_place_id"`
-	PlaceName string  `json:"gather_place_name"`
-	PlaceLat  float64 `json:"gather_place_lat"`
-	PlaceLng  float64 `json:"gather_place_lng"`
-	Finish    string  `json:"finish_datetime"`
-	AcOrgIDs  []int   `json:"accept_org_ids"`
-	AcOffIDs  []int   `json:"accept_office_ids"`
-	AcSoldIDs []int   `json:"accept_soldr_ids"`
 }
 
 // 获取所有下属组织及人员, /task/orgs [GET]
