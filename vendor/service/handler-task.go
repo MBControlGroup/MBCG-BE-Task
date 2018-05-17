@@ -38,7 +38,7 @@ func basicInfo(formatter *render.Render) http.HandlerFunc {
 func createTask(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 获取cookie中的token
-		c, err := r.Cookie(tokenCookieName)
+		/*c, err := r.Cookie(tokenCookieName)
 		if err != nil || c.Value == "" { // 用户可能登录超时，需重新登录
 			formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 			panic(err)
@@ -50,7 +50,7 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		if err != nil {
 			formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 			panic(err)
-		}
+		}*/
 
 		// 获取http.Request中的Body
 		reqBody, _ := ioutil.ReadAll(r.Body)              // 读取http.Request的Body
@@ -63,11 +63,15 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 			reqPlace Place
 			reqAcMem AcMem
 		)
+		var adminID uint = 3
 		reqTask.AdminID = adminID
 		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
 		json.Unmarshal([]byte(reqBytes), &reqPlace) // 从json中解析Place的内容
 		json.Unmarshal([]byte(reqBytes), &reqAcMem) // 从json中解析AcMem接收集合通知的成员
+
 		CreateTask(&reqTask, &reqPlace, &reqAcMem)
+
+		w.WriteHeader(http.StatusCreated)
 	}
 }
 
