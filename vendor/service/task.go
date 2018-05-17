@@ -60,7 +60,7 @@ func GetAdminAndType(token string) (adminID uint, isOff bool, err error) {
 // CreateTask 在表Tasks创建新任务，并在表GatherNotifications创建新的集合通知
 func CreateTask(task *Task, place *Place, acmem *AcMem) {
 	insertTask(task, place)
-	// createNotifications(t)
+	insertAcMem(task.ID, acmem)
 
 	// 广播：模板消息、短信
 }
