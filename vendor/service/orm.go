@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"strconv"
 
@@ -57,11 +58,13 @@ func insertTask(task *Task, place *Place) {
 	rawSQL := "INSERT INTO Tasks"
 	rawSQL += "(title, mem_count, launch_admin_id, gather_datetime, detail, gather_place_id, finish_datetime)"
 	rawSQL += "VALUES(?,?,?,?,?,?,?)"
-	_, err := o.Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish).Exec()
+	result, err := o.Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish).Exec()
 	if err != nil {
 		o.Rollback()
 	} else {
 		o.Commit()
+		taskID, _ := result.LastInsertId()
+		task.ID = int(taskID)
 	}
 }
 
@@ -94,19 +97,17 @@ func insertAcMem(taskID int, acmem *AcMem) {
 	uniqueSoldrIDs := make(map[int]bool) // 从单位、组织、个人中选取的所有民兵ID，因为人员可能有重复，故用map消重
 	var soldierIDs []int
 	// 从单位ID获取民兵ID
-	for _, acOffID := range acmem.AcOffIDs {
-		soldierIDs = getSoldrIDsFromOrg(acOffID)
-		for _, soldrID := range soldierIDs {
-			uniqueSoldrIDs[soldrID] = true
-		}
+	soldierIDs = getSoldrIDsFromOfficeIDs(acmem.AcOffIDs)
+	for _, soldrID := range soldierIDs {
+		uniqueSoldrIDs[soldrID] = true
 	}
+
 	// 从组织ID获取民兵ID
-	for _, acOrgID := range acmem.AcOrgIDs {
-		soldierIDs = getSoldrIDsFromOrg(acOrgID)
-		for _, soldrID := range soldierIDs {
-			uniqueSoldrIDs[soldrID] = true
-		}
+	soldierIDs = getSoldrIDsFromOrgIDs(acmem.AcOrgIDs)
+	for _, soldrID := range soldierIDs {
+		uniqueSoldrIDs[soldrID] = true
 	}
+
 	// 获取单独被选取的民兵ID
 	for _, soldrID := range acmem.AcSoldIDs {
 		uniqueSoldrIDs[soldrID] = true
@@ -130,19 +131,37 @@ func insertAcMem(taskID int, acmem *AcMem) {
 }
 
 // 通过单位ID获取所有民兵ID
-func getSoldrIDsFromOffice(officeID int) []int {
+func getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
 	var soldierIDs []int
-	rawSQL := "SELECT soldier_id FROM Soldiers WHERE serve_office_id = ?"
+	rawSQL := "SELECT soldier_id FROM Soldiers WHERE serve_office_id IN "
+	rawSQL += fmt.Sprint(officeIDs)
 	o := orm.NewOrm()
-	o.Raw(rawSQL, officeID).QueryRows(&soldierIDs)
+	o.Raw(rawSQL).QueryRows(&soldierIDs)
 	return soldierIDs
 }
 
 // 通过组织ID获取所有民兵ID
-func getSoldrIDsFromOrg(orgID int) []int {
+func getSoldrIDsFromOrgIDs(orgIDs arrayInt) []int {
 	var soldierIDs []int
-	rawSQL := "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id = ?"
+	rawSQL := "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id IN "
+	rawSQL += fmt.Sprint(orgIDs)
 	o := orm.NewOrm()
-	o.Raw(rawSQL, orgID).QueryRows(&soldierIDs)
+	o.Raw(rawSQL).QueryRows(&soldierIDs)
 	return soldierIDs
+}
+
+type arrayInt []int
+
+func (num arrayInt) String() string {
+	arrayToStr := "("
+	arrayLen := len(num)
+	for i, n := range num {
+		if i == arrayLen-1 {
+			arrayToStr += strconv.Itoa(n)
+		} else {
+			arrayToStr += strconv.Itoa(n) + ","
+		}
+	}
+	arrayToStr += ")"
+	return arrayToStr
 }

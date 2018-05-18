@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -68,6 +69,12 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
 		json.Unmarshal([]byte(reqBytes), &reqPlace) // 从json中解析Place的内容
 		json.Unmarshal([]byte(reqBytes), &reqAcMem) // 从json中解析AcMem接收集合通知的成员
+		/*testtask, _ := json.Marshal(&reqTask)
+		testplace, _ := json.Marshal(&reqPlace)
+		testacmem, _ := json.Marshal(&reqAcMem)*/
+		fmt.Println(reqTask)
+		fmt.Println(reqPlace)
+		fmt.Println(reqAcMem)
 
 		CreateTask(&reqTask, &reqPlace, &reqAcMem)
 

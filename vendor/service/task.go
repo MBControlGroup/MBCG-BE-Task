@@ -62,5 +62,5 @@ func CreateTask(task *Task, place *Place, acmem *AcMem) {
 	insertTask(task, place)
 	insertAcMem(task.ID, acmem)
 
-	// 广播：模板消息、短信
+	// TODO: 广播：模板消息、短信
 }
