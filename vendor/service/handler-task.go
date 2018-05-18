@@ -11,14 +11,19 @@ import (
 )
 
 const (
-	tokenCookieName = "token"
-	reLoginMsg      = "登录超时，请重新登录"
-	loginPath       = "/signin"
+	tokenCookieName        = "token"
+	reLoginMsg             = "登录超时，请重新登录"
+	internalServerErrorMsg = "很抱歉，服务器出错了"
+	loginPath              = "/signin"
 )
 
 type redirectMsg struct {
 	Msg string `json:"cnmsg"`
 	URL string `json:"url"`
+}
+
+type serverErrorMsg struct {
+	Msg string `json:"cnmsg"`
 }
 
 // 结束任务, /task [PUT]
@@ -69,16 +74,18 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
 		json.Unmarshal([]byte(reqBytes), &reqPlace) // 从json中解析Place的内容
 		json.Unmarshal([]byte(reqBytes), &reqAcMem) // 从json中解析AcMem接收集合通知的成员
-		/*testtask, _ := json.Marshal(&reqTask)
-		testplace, _ := json.Marshal(&reqPlace)
-		testacmem, _ := json.Marshal(&reqAcMem)*/
+
+		fmt.Println("[/task POST] Request Body:")
 		fmt.Println(reqTask)
 		fmt.Println(reqPlace)
 		fmt.Println(reqAcMem)
 
-		CreateTask(&reqTask, &reqPlace, &reqAcMem)
-
-		w.WriteHeader(http.StatusCreated)
+		err := CreateTask(&reqTask, &reqPlace, &reqAcMem)
+		if err != nil {
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+		} else {
+			w.WriteHeader(http.StatusCreated)
+		}
 	}
 }
 

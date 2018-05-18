@@ -35,42 +35,62 @@ func getAdminType(adminID uint) (isOff bool, err error) {
 	}
 }
 
-func insertPlace(place *Place) int {
+// CreateTask 在表Tasks创建新任务，并在表GatherNotifications创建新的集合通知
+func CreateTask(task *Task, place *Place, acmem *AcMem) error {
 	o := orm.NewOrm()
 	o.Begin()
-	rawSQL := "INSERT INTO Places(place_name, place_lat, place_lng) VALUES(?,?,?)"
-	result, err := o.Raw(rawSQL, place.Name, place.Lat, place.Lng).Exec()
+
+	// 创建新任务Tasks，若地点是新的，则创建新地点Places
+	err := insertTask(&o, task, place)
 	if err != nil {
 		o.Rollback()
-	} else {
-		o.Commit()
+		return err
 	}
-	placeID, _ := result.LastInsertId()
-	return int(placeID)
+	// 创建新的AcceptMembers，即插入TaskAcceptOffices, TaskAcceptOrgs, GatherNotifications
+	err = insertAcMem(&o, task.ID, acmem)
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+
+	// TODO: 广播：模板消息、短信
+
+	return nil
 }
 
-func insertTask(task *Task, place *Place) {
-	if task.PlaceID == -1 {
-		task.PlaceID = insertPlace(place)
+func insertPlace(o *orm.Ormer, place *Place) (int, error) {
+	rawSQL := "INSERT INTO Places(place_name, place_lat, place_lng) VALUES(?,?,?)"
+	result, err := (*o).Raw(rawSQL, place.Name, place.Lat, place.Lng).Exec()
+	if err != nil {
+		return -1, err
 	}
-	o := orm.NewOrm()
-	o.Begin()
+	placeID, _ := result.LastInsertId()
+	return int(placeID), nil
+}
+
+func insertTask(o *orm.Ormer, task *Task, place *Place) error {
+	var err error
+	if task.PlaceID == -1 {
+		task.PlaceID, err = insertPlace(o, place)
+		if err != nil {
+			return err
+		}
+	}
+
 	rawSQL := "INSERT INTO Tasks"
 	rawSQL += "(title, mem_count, launch_admin_id, gather_datetime, detail, gather_place_id, finish_datetime)"
 	rawSQL += "VALUES(?,?,?,?,?,?,?)"
-	result, err := o.Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish).Exec()
+	result, err := (*o).Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish).Exec()
 	if err != nil {
-		o.Rollback()
-	} else {
-		o.Commit()
-		taskID, _ := result.LastInsertId()
-		task.ID = int(taskID)
+		return err
 	}
+	taskID, _ := result.LastInsertId()
+	task.ID = int(taskID)
+	return nil
 }
 
-func insertAcMem(taskID int, acmem *AcMem) {
-	o := orm.NewOrm()
-	o.Begin()
+func insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 	taskIDStr := strconv.Itoa(taskID)
 
 	// 批量插入“接受任务的单位”
@@ -78,20 +98,18 @@ func insertAcMem(taskID int, acmem *AcMem) {
 	for _, acOffID := range acmem.AcOffIDs {
 		rawSQL += "(" + taskIDStr + "," + strconv.Itoa(acOffID) + "),"
 	}
-	_, err := o.Raw(rawSQL[:len(rawSQL)-1]).Exec()
+	_, err := (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 	if err != nil {
-		o.Rollback()
-		return
+		return err
 	}
 	// 插入“接受任务的组织”
 	rawSQL = "INSERT INTO TaskAcceptOrgs(ac_task_id, ac_org_id) VALUES"
 	for _, acOrgID := range acmem.AcOrgIDs {
 		rawSQL += "(" + taskIDStr + "," + strconv.Itoa(acOrgID) + "),"
 	}
-	_, err = o.Raw(rawSQL[:len(rawSQL)-1]).Exec()
+	_, err = (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 	if err != nil {
-		o.Rollback()
-		return
+		return err
 	}
 
 	uniqueSoldrIDs := make(map[int]bool) // 从单位、组织、个人中选取的所有民兵ID，因为人员可能有重复，故用map消重
@@ -120,12 +138,11 @@ func insertAcMem(taskID int, acmem *AcMem) {
 			rawSQL += "(" + taskIDStr + "," + strconv.Itoa(soldierID) + ",'UR')," // readStatus: UR(未读状态)
 		}
 	}
-	_, err = o.Raw(rawSQL[:len(rawSQL)-1]).Exec()
+	_, err = (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 	if err != nil {
-		o.Rollback()
-	} else {
-		o.Commit()
+		return err
 	}
+	return nil
 
 	// TODO: 对所有 uniqueSoldrIDs 进行广告（模板消息、短信）操作
 }
