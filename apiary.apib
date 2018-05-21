@@ -77,32 +77,70 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
         {
             "total_mems": 200,
-            "org_detail": {
-                "org_id": 123456,
-                "name": "海珠区一排",
-                "members": [
+            "detail": {
+                "office_name": "海珠人武部",
+                "orgs": [
                     {
-                        "soldier_id": 123456,
-                        "name": "张三",
-                        "is_admin": true
-                    },{
-                        "soldier_id": 654321,
-                        "name": "李四",
-                        "is_admin": false
-                    }
-                ],
-                "lower_orgs":[
-                    {
-                        "org_id": 654321,
-                        "name": "XXX",
+                        "org_id": 123456,
+                        "name": "海珠区一排",
                         "members": [
                             {
-                                "soldier_id": 111111,
+                                "soldier_id": 123456,
                                 "name": "张三",
+                                "is_admin": true
+                            },{
+                                "soldier_id": 654321,
+                                "name": "李四",
                                 "is_admin": false
                             }
                         ],
-                        "lower_orgs":[]
+                        "lower_org_ids":[654321]
+                    },{
+                        "org_id": 654321,
+                        "name": "海珠区二排",
+                        "members": [
+                            {
+                                "soldier_id": 123456,
+                                "name": "张三",
+                                "is_admin": true
+                            },{
+                                "soldier_id": 654321,
+                                "name": "李四",
+                                "is_admin": false
+                            }
+                        ],
+                        "lower_org_ids":[]
+                    }
+                ],
+                "lower_offices":[
+                    {
+                        "office_name": "琶洲街道",
+                        "orgs": [
+                            {
+                                "org_id": 123456,
+                                "name": "琶洲一连",
+                                "members": [
+                                    {
+                                        "soldier_id": 123456,
+                                        "name": "张三",
+                                        "is_admin": true
+                                    }
+                                ],
+                                "lower_org_ids":[654321]
+                            },{
+                                "org_id": 654321,
+                                "name": "琶洲二连",
+                                "members": [
+                                    {
+                                        "soldier_id": 654321,
+                                        "name": "李四",
+                                        "is_admin": false
+                                    }
+                                ],
+                                "lower_org_ids":[]
+                            }
+                        ],
+                        "lower_offices":[]
                     }
                 ]
             }
