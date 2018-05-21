@@ -1,10 +1,10 @@
 # 任务管理 [/task]
 
-RESTful API 与 JSON 数据格式
+本文档定义了“任务管理”模块的所有 RESTful API 与 JSON 数据格式，及相应说明
 
-[REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
+同时也提供API的简化版：[REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
 
-[Apiary](https://task25.docs.apiary.io/#)
+所有的API都写入Apiary中：[Apiary](https://task25.docs.apiary.io/#)
 
 ## 任务
 
@@ -91,37 +91,41 @@ response:
 ```
 
 ### 获取所有下属组织及人员 [/task/orgs] [GET]
-点击"发布任务"时，服务器会返回可选择的组织、人员
+指挥官点击"发布任务"时，网页需要显示可选择的组织、人员
 
-返回指挥官所在单位内的所在组织和下属组织,和所有下属单位及单位所含的组织
+该API返回指挥官所在组织和下属组织及人员（每个管理员账号对应一个组织，不会出现一个管理员账号管理多个组织的情况。若一个民兵管理多个组织，则该民兵拥有多个管理员账号，与组织一一对应）
 ```
 request:
 	null
 response:
 	200 OK
 	{
-		"total_mems":200,		// 所有下属单位总人数.因为一个人可在多个组织内,故返回单位人数
-		"orgs_detail":			// 组织详情
+		"total_mems":200,		// 所有下属组织总人数，人员不重复
+		"org_detail":			// 组织详情
 		{
-			"office_name":"海珠人武部",		// 单位名称
-			"orgs":[				// 单位所含有的组织
+			"org_id":123456,	// 组织id
+			"name"	:"海珠区一排",	// 组织名称
+			"members":[		// 组织成员
 				{
-					"org_id":123456,	// 组织id
-					"name"	:"海珠区一排",	// 组织名称
-					"members":[		// 组织成员
-						{
-							"soldier_id"	:123456,	// 民兵id
-							"name"		:"张三",	// 民兵姓名
-							"is_admin"	:true		// 是否为管理员
-						},
-						...
-					],
-					"lower_orgs_id":[11,22,33]			// 下属组织id
+					"soldier_id"	:123456,	// 民兵id
+					"name"		:"张三",	// 民兵姓名
+					"is_admin"	:true		// 是否为管理员
 				},
 				...
 			],
-			"lower_offices":[			// 下属单位,嵌套"orgs_detail"
-				{},
+			"lower_orgs":[			// 下属组织，嵌套"org_detail"
+				{
+					"org_id":654321,	// 组织id
+					"name"	:"XXX",		// 组织名称
+					"members":[
+						{
+							"soldier_id":111111,	// 民兵id
+							"name"	:"李四",		// 民兵姓名
+							"is_admin"	:false		// 是否为管理员
+						},
+						...
+					]
+				},
 				...
 			]
 		}
