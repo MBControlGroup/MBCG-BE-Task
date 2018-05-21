@@ -150,7 +150,8 @@ func insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 // 通过单位ID获取所有民兵ID
 func getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
 	var soldierIDs []int
-	rawSQL := "SELECT soldier_id FROM Soldiers WHERE serve_office_id IN "
+	rawSQL := "SELECT DISTINCT(soldier_id) FROM Soldiers WHERE serve_office_id IN "
+	//rawSQL := "SELECT soldier_id FROM Soldiers WHERE serve_office_id IN "
 	rawSQL += fmt.Sprint(officeIDs)
 	o := orm.NewOrm()
 	o.Raw(rawSQL).QueryRows(&soldierIDs)
@@ -160,7 +161,8 @@ func getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
 // 通过组织ID获取所有民兵ID
 func getSoldrIDsFromOrgIDs(orgIDs arrayInt) []int {
 	var soldierIDs []int
-	rawSQL := "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id IN "
+	rawSQL := "SELECT DISTINCT(soldier_id) FROM OrgSoldierRelationships WHERE serve_org_id IN "
+	//rawSQL := "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id IN "
 	rawSQL += fmt.Sprint(orgIDs)
 	o := orm.NewOrm()
 	o.Raw(rawSQL).QueryRows(&soldierIDs)
