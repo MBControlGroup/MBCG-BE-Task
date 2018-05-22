@@ -103,7 +103,7 @@ response:
 	200 OK
 	{
 		"total_mems":200,		// 总人数，人员不会重复
-		"detail":				// 详情
+		"detail":			// 详情
 		{
 			"office_name":"海珠人武部",		// 单位名称
 			"orgs":[				// 单位所含有的组织
@@ -113,7 +113,7 @@ response:
 					"members":[		// 组织成员
 						{
 							"soldier_id"	:123456,	// 民兵id
-							"name"		:"张三",	// 民兵姓名
+							"name"		:"张三",		// 民兵姓名
 							"is_admin"	:true		// 是否为管理员
 						},
 						...
@@ -152,7 +152,7 @@ response:
 			"memebers"	:[
 				{
 					"soldier_id"	:123456,	// 民兵id
-					"name"		:"李四",	// 民兵姓名
+					"name"		:"李四",		// 民兵姓名
 				},
 				...
 			]
@@ -301,7 +301,7 @@ response:
 				"members"	:[		// 单位中参与任务的人员
 					{
 						"soldier_id"	:123456,	// 民兵id
-						"name"			:"王五",	// 民兵姓名
+						"name"		:"王五",		// 民兵姓名
 						"im_user_id"	:123456		// 即时通讯id
 					},
 					...
@@ -316,9 +316,9 @@ response:
 				"members"	:[
 					{
 						"soldier_id"	:123456,	// 民兵id
-						"name"			:"王五",	// 民兵姓名
+						"name"		:"王五",		// 民兵姓名
 						"im_user_id"	:123456,	// 即时通讯id
-						"is_admin"		:true		// 是否为组织的管理员
+						"is_admin"	:true			// 是否为组织的管理员
 					},
 					...
 				]
@@ -328,7 +328,7 @@ response:
 		"indiv":[	// 上级可能单独选了某些人发布任务.若上级没有单独选择某些人,则"indiv"为空
 			{
 				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",	// 民兵姓名
+				"name"		:"张三",		// 民兵姓名
 				"serve_office"	:"海珠人武部",	// 所属单位名称
 				"serve_orgs"	:"海珠区一排",	// 所属组织名称,可能返回第一个找到的组织
 				"im_user_id"	:123456		// 即时通讯id
@@ -357,7 +357,7 @@ request:
 response:
 	200 OK
 	{
-		"mem_count"	:30,	// 目标征集人数
+		"mem_count"	:30,		// 目标征集人数
 		"notify_count"	:100,		// 通知人数
 		"response_count":70,		// 响应人数
 		"accept_count"	:30,		// 接受人数
@@ -386,12 +386,12 @@ response:
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",			// 民兵姓名
+				"name"		:"张三",			// 民兵姓名
 				"im_user_id"	:123456,		// 即时通讯id
-				"phone"			:13600000000,	// 手机号码
+				"phone"		:13600000000,	// 手机号码
 				"serve_office"	:"海珠人武部",	// 所属单位
-				"status"		:"UR"/"RF"/"AC",  // 响应状态,"UR"代表未读,"RF"拒绝,"AC"接受
-				"resp_time"		:"2018-05-06 12:02:00"	// 响应时间
+				"status"	:"UR"/"RF"/"AC",  // 响应状态,"UR"代表未读,"RF"拒绝,"AC"接受
+				"resp_time"	:"2018-05-06 12:02:00"	// 响应时间
 			},
 			...
 		]
@@ -416,7 +416,6 @@ request:
 response:
 	200 OK
 	{
-		"ac_counts"		:50,		// 接受任务的人数
 		"check_counts"	:30,		// 签到人数
 		"avg_chk_time"	:"00:50:31"	// 平均签到耗时
 	}
@@ -443,11 +442,11 @@ response:
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",			// 民兵姓名
+				"name"		:"张三",				// 民兵姓名
 				"im_user_id"	:123456,		// 即时通讯id
-				"phone"			:13600000000,	// 手机号码
+				"phone"		:13600000000,		// 手机号码
 				"serve_office"	:"海珠人武部",	// 所属单位
-				"status"		:0/1,  			// 签到状态,0代表未签到,1代表已签到
+				"status"	:0/1,	  			// 签到状态,0代表未签到,1代表已签到
 				"check_time"	:"2018-05-06 15:02:00"	// 签到时间
 			},
 			...
