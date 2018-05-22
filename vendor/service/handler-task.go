@@ -26,37 +26,68 @@ type serverErrorMsg struct {
 	Msg string `json:"cnmsg"`
 }
 
+type taskID struct {
+	ID int `json:"task_id"`
+}
+
 // 结束任务, /task [PUT]
 func endTask(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// 获取http.Request中的Body
+		reqBody, _ := ioutil.ReadAll(r.Body) // 读取http.Request的Body
+		defer r.Body.Close()
 
+		// 从Request Body中获取taskID
+		var taskid taskID
+		json.Unmarshal(reqBody, &taskid)
+
+		// TODO: 获取管理员ID
+
+		// 结束任务
+		err := EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
+		if err != nil {                   // DB UPDATE 出错
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+		} else { // 成功结束任务
+			w.WriteHeader(http.StatusNoContent)
+		}
 	}
+}
+
+type BasicInfo struct {
+	IsOff  bool `json:"is_office"`
+	Places []PlaceInBasicInfo
+}
+
+type PlaceInBasicInfo struct {
+	ID   int     `json:"place_id"`
+	Name string  `json:"place_name"`
+	Lat  float64 `json:"place_lat"`
+	Lng  float64 `json:"place_lng"`
 }
 
 // 获取基本信息, /task [GET]
 func basicInfo(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// 获取管理员ID和类型
+		adminID, isOffice, err := GetAdminAndType(w, r)
+		if err != nil { // 若出错, 则GetAdminAndType函数已经对ResponseWriter进行写入, 可直接返回
+			return
+		}
 
+		places := GetCommonPlaces(adminID, isOffice)
+		info := BasicInfo{IsOff: isOffice, Places: places}
+		formatter.JSON(w, http.StatusOK, info)
 	}
 }
 
 // 发布任务, /task [POST]
 func createTask(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// 获取cookie中的token
-		/*c, err := r.Cookie(tokenCookieName)
-		if err != nil || c.Value == "" { // 用户可能登录超时，需重新登录
-			formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
-			panic(err)
+		// 获取AdminID
+		adminID, err := GetAdminID(w, r)
+		if err != nil { // 若出错, GetAdminID 已经对 ResponseWriter 写入信息, 故可直接 return
+			return
 		}
-
-		// 根据token获取AdminID
-		token := c.Value
-		adminID, err := GetAdmin(token)
-		if err != nil {
-			formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
-			panic(err)
-		}*/
 
 		// 获取http.Request中的Body
 		reqBody, _ := ioutil.ReadAll(r.Body)              // 读取http.Request的Body
@@ -69,7 +100,6 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 			reqPlace Place
 			reqAcMem AcMem
 		)
-		var adminID uint = 3
 		reqTask.AdminID = adminID
 		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
 		json.Unmarshal([]byte(reqBytes), &reqPlace) // 从json中解析Place的内容
@@ -80,7 +110,7 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		fmt.Println(reqPlace)
 		fmt.Println(reqAcMem)
 
-		err := CreateTask(&reqTask, &reqPlace, &reqAcMem)
+		err = CreateTask(&reqTask, &reqPlace, &reqAcMem)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else {

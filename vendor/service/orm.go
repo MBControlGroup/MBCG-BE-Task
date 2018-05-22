@@ -17,10 +17,10 @@ func init() {
 	//orm.RegisterModelWithPrefix("mb", new(Task), new(Place))
 }
 
-func getAdminType(adminID uint) (isOff bool, err error) {
+func getAdminType(adminID int) (isOff bool, err error) {
 	o := orm.NewOrm()
 	var adminType string
-	err = o.Raw("SELECT admin_type FROM Admins WHERE admin_id = ?").QueryRow(&adminType)
+	err = o.Raw("SELECT admin_type FROM Admins WHERE admin_id = ?", adminID).QueryRow(&adminType)
 	if err != nil {
 		return false, err
 	}
@@ -59,20 +59,51 @@ func CreateTask(task *Task, place *Place, acmem *AcMem) error {
 	return nil
 }
 
-func insertPlace(o *orm.Ormer, place *Place) (int, error) {
+func insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, error) {
+	// 插入Places
 	rawSQL := "INSERT INTO Places(place_name, place_lat, place_lng) VALUES(?,?,?)"
 	result, err := (*o).Raw(rawSQL, place.Name, place.Lat, place.Lng).Exec()
 	if err != nil {
 		return -1, err
 	}
 	placeID, _ := result.LastInsertId()
+
+	// 关联 常用地点 与 组织/单位
+	if isOffice { // 插入OfficePlaces
+		officeID := getOfficeIDFromAdminID(task.AdminID) // 通过adminID获取officeID
+		rawSQL = "INSERT INTO OfficePlaces (office_id, place_id) VALUES (?, ?)"
+		(*o).Raw(rawSQL, officeID, placeID).Exec()
+	} else { // 插入OrgPlaces
+		orgID := getOrgIDFromAdminID(task.AdminID) // 通过adminID获取orgID
+		rawSQL = "INSERT INTO OrgPlaces (org_id, place_id) VALUES (?, ?)"
+		(*o).Raw(rawSQL, orgID, placeID).Exec()
+	}
+
 	return int(placeID), nil
+}
+
+func getOrgIDFromAdminID(adminID int) int {
+	var orgID int
+	o := orm.NewOrm()
+	o.Raw("SELECT org_id FROM OrgAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&orgID)
+	return orgID
+}
+
+func getOfficeIDFromAdminID(adminID int) int {
+	var officeID int
+	o := orm.NewOrm()
+	o.Raw("SELECT office_id FROM OfficeRelationships WHERE admin_id = ?", adminID).QueryRow(&officeID)
+	return officeID
 }
 
 func insertTask(o *orm.Ormer, task *Task, place *Place) error {
 	var err error
-	if task.PlaceID == -1 {
-		task.PlaceID, err = insertPlace(o, place)
+	if task.PlaceID == -1 { // 需要新建单位/组织的常用地点
+		isOffice, err := getAdminType(task.AdminID)
+		if err != nil {
+			return err
+		}
+		task.PlaceID, err = insertPlace(o, task, isOffice, place)
 		if err != nil {
 			return err
 		}
@@ -183,4 +214,21 @@ func (num arrayInt) String() string {
 	}
 	arrayToStr += ")"
 	return arrayToStr
+}
+
+// EndTask 结束任务, 把任务结束时间设为当前时间
+func EndTask(taskID, adminID int) error {
+	o := orm.NewOrm()
+	_, err := o.Raw("UPDATE Tasks SET finish_datetime = NOW() WHERE task_id = ?", taskID).Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetCommonPlaces(adminID int, isOffice bool) []PlaceInBasicInfo {
+	var places []PlaceInBasicInfo
+	o := orm.NewOrm()
+	o.Raw("SELECT")
+	return places
 }

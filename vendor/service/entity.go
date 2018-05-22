@@ -4,7 +4,7 @@ type Task struct {
 	ID      int    `json:"task_id"`
 	Title   string `json:"title"`
 	Count   int    `json:"mem_count"`
-	AdminID uint   `json:"launch_admin_id"`
+	AdminID int    `json:"launch_admin_id"`
 	Launch  string `json:"launch_datetime"`
 	Gather  string `json:"gather_datetime"`
 	Detail  string `json:"detail"`
