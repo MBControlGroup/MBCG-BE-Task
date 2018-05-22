@@ -263,7 +263,7 @@ response:
 	{				// 若需获取参与任务的人员,请访问 /task/detail/mem/{task_id}
 		"task_id"		:123456,		// 任务id
 		"title"			:"消防演习",		// 任务主题
-		"launch_admin"		:"海珠区一排",		// 发起人
+		"launch_admin"		:"海珠区一排",		// 发起单位/组织
 		"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
 		"gather_datetime"	:"2018-05-06 13:00:00",	// 集合时间
 		"finish_datetime"	:"2018-05-06 20:00:00",	// 结束时间
@@ -273,6 +273,8 @@ response:
 		"status"		:"zj/jh/zx",		// 人员征集中,集合中,任务执行中
 		"detail"		:0.4,			// 若为zj,0.4, 就是人员征集了40%
 		"mem_count"		:30			// 目标征集人数
+		"is_launcher"	:true		// 是否为该任务的发起人. 若为true, 则有权限结束该任务
+									// 若为false, 则不能结束该任务(他可能是发起人的上级)
 	}
 
 	307 Temporary Redirect
