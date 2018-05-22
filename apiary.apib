@@ -13,7 +13,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 发布任务 [POST]
 
-+ Request (application/json)
++ Request (application/json; charset=utf-8)
 
         {
             "title": "消防演习",
@@ -35,7 +35,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取基本信息 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -71,7 +71,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取所有下属组织及成员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -150,7 +150,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取所有下属单位及成员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -192,11 +192,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 
 
-## 执行中任务列表 [/task/working/20/1]
+## 执行中任务列表 [/task/working/{item_counts_per_page}/{cur_page}]
 
 ### 查看执行中任务列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -226,11 +226,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             ]
         }
 
-## 已完成任务列表 [/task/done/20/1]
+## 已完成任务列表 [/task/done/{item_counts_per_page}/{cur_page}]
 
 ### 查看已完成任务列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -261,11 +261,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
         }
 
 
-## 任务详情 [/task/detail/123456]
+## 任务详情 [/task/detail/{task_id}]
 
 ### 查看任务详情 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -285,11 +285,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "is_launcher": true
         }
 
-## 参与任务的人员 [/task/detail/mem/123456]
+## 参与任务的人员 [/task/detail/mem/{task_id}]
 
 ### 查看参与任务的人员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -334,7 +334,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 
 
-## 任务响应情况 [/task/response/123456]
+## 任务响应情况 [/task/response/{task_id}]
 
 ### 查看任务响应情况 [GET]
 
@@ -350,11 +350,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "avg_acpt_time": "00:30:10"
         }
 
-## 任务的响应人员列表 [/task/working/response/mem/123456/20/1]
+## 任务的响应人员列表 [/task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
 ### 查看任务的响应人员列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -383,7 +383,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
     }
 
 
-## 任务集合情况 [/task/gather/123456]
+## 任务集合情况 [/task/gather/{task_id}]
 
 ### 查看任务集合情况 [GET]
 
@@ -396,11 +396,9 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "avg_chk_time": "00:50:31"
         }
 
-## 任务的集合人员列表 [/task/gather/mem/123456/20/1]
+## 任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
-### 查看任务的集合人员列表 [GET]
-
-+ Response 200 (applicaton/json)
+### 查看任务的集合人员列表 [GE
 
     + Body
 
