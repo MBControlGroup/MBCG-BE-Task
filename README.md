@@ -1,8 +1,8 @@
 # 任务管理 [/task]
 
-RESTful API 与 JSON 数据格式
+这是RESTful API 与 JSON 数据格式的详细说明
 
-[REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
+因为数据比较多,可以查看API的简化版: [REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
 
 [Apiary](https://task25.docs.apiary.io/#)
 
