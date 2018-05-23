@@ -257,12 +257,14 @@ func GetOfficesAndMemsFromAdminID(adminID int) (*OfficeInfo, error) {
 	var officeInfo OfficeInfo
 	officeDetail, memCounts, err := getOfficeDetail(officeID)
 	officeInfo.OfficeDetail = officeDetail
+	officeInfo.TotalMems = memCounts
 
 	return &officeInfo, err
 }
 
+// 递归, 获取下属单位、人员及人数
 func getOfficeDetail(officeID int) (Office, int, error) {
-	office := Office{ID: officeID}
+	office := Office{ID: officeID, LowerOffs: make([]Office, 0)}
 
 	// 根据OfficeID获取单位名称
 	o := orm.NewOrm()

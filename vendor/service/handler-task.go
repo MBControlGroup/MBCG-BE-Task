@@ -140,7 +140,14 @@ func offices(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 
-		officeInfo := GetOfficesAndMemsFromAdminID(adminID)
+		// 从AdminID获取Offices和成员
+		officeInfo, err := GetOfficesAndMemsFromAdminID(adminID)
+		if err != nil {
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			return
+		}
+
+		formatter.JSON(w, http.StatusOK, officeInfo)
 	}
 }
 

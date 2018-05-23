@@ -26,7 +26,7 @@ type tokenMessg struct {
 
 // GetAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
 func GetAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
-	return 4, nil
+	return 3, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	// 获取cookie中的token
