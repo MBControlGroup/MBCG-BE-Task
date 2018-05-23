@@ -115,7 +115,7 @@ response:
 						{
 							"soldier_id"	:123456,	// 民兵id
 							"name"		:"张三",		// 民兵姓名
-							"is_admin"	:true		// 是否为管理员
+							"is_admin"	:true		// 是否为管理员. 若为false, 则不显示这一项
 						},
 						...
 					],
@@ -321,7 +321,7 @@ response:
 						"soldier_id"	:123456,	// 民兵id
 						"name"		:"王五",		// 民兵姓名
 						"im_user_id"	:123456,	// 即时通讯id
-						"is_admin"	:true		// 是否为组织的管理员
+						"is_admin"	:true		// 是否为组织的管理员. 若为false, 则不显示这一项
 					},
 					...
 				]
@@ -333,7 +333,6 @@ response:
 				"soldier_id"	:123456,	// 民兵id
 				"name"		:"张三",		// 民兵姓名
 				"serve_office"	:"海珠人武部",	// 所属单位名称
-				"serve_orgs"	:"海珠区一排",	// 所属组织名称,可能返回第一个找到的组织
 				"im_user_id"	:123456		// 即时通讯id
 			},
 			...
@@ -408,9 +407,9 @@ response:
 ```
 
 ## 任务集合情况
-集合情况包括签到人数、平均签到耗时等信息，这些信息在“查看任务集合情况”中。
+集合情况包括签到人数，这些信息在“查看任务集合情况”中。
 
-集合情况还包括签到的人员列表，列表包含是否已签到、和签到耗时等，这些信息在“查看任务的集合人员列表”中。
+集合情况还包括签到的人员列表，列表包含是否已签到等，这些信息在“查看任务的集合人员列表”中。
 
 ### 查看任务集合情况 [/task/gather/{task_id}] [GET]
 ```
@@ -419,8 +418,7 @@ request:
 response:
 	200 OK
 	{
-		"check_counts"	:30,		// 签到人数
-		"avg_chk_time"	:"00:50:31"	// 平均签到耗时
+		"check_counts"	:30		// 签到人数
 	}
 
 	307 Temporary Redirect
@@ -430,7 +428,7 @@ response:
 	}
 ```
 
-#### 查看任务的集合人员列表 [/task/working/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
+### 查看任务的集合人员列表 [/task/working/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
 item_counts_per_page: 每页显示人员的数量
 
 cur_page: 当前页数
@@ -449,8 +447,7 @@ response:
 				"im_user_id"	:123456,		// 即时通讯id
 				"phone"		:13600000000,		// 手机号码
 				"serve_office"	:"海珠人武部",		// 所属单位
-				"status"	:0/1,	  		// 签到状态,0代表未签到,1代表已签到
-				"check_time"	:"2018-05-06 15:02:00"	// 签到时间
+				"status"	:"UN"/"CH"		// 签到状态,UN代表未签到,CH代表已签到
 			},
 			...
 		]
