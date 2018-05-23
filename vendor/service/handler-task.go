@@ -134,28 +134,38 @@ func orgs(formatter *render.Render) http.HandlerFunc {
 // 获取所有下属单位及人员, /task/offices [GET]
 func offices(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// 获取AdminID
+		adminID, err := GetAdminID(w, r)
+		if err != nil {
+			return
+		}
 
+		officeInfo := GetOfficesAndMemsFromAdminID(adminID)
 	}
 }
 
+// OfficeInfo 获取下属单位及人员
 type OfficeInfo struct {
 	TotalMems    int    `json:"total_mems"`
 	OfficeDetail Office `json:"office_detail"`
 }
 
+// Office 目前主要针对"获取下属单位及人员"设计
 type Office struct {
-	ID   int    `json:"office_id"`
-	Name string `json:"name"`
-	Members
+	ID        int       `json:"office_id"`
+	Name      string    `json:"name"`
+	Members   []Soldier `json:"members"`
+	LowerOffs []Office  `json:"lower_offices"`
 }
 
+// Soldier 用于所有JSON数据的传输
 type Soldier struct {
-	ID          int    `json:"soldier_id"`
-	Name        string `json:"name"`
-	IMUserID    int    `json:"im_user_id,omitempty"`
+	ID          int    `json:"soldier_id" orm:"column(soldier_id)"`
+	Name        string `json:"name" orm:"column(name)"`
+	Phone       int64  `json:"phone,omitempty" orm:"column(phone_num)"`
+	IMUserID    int    `json:"im_user_id,omitempty" orm:"column(im_user_id)"`
 	IsAdmin     bool   `json:"is_admin,omitempty"`
 	ServeOffice string `json:"serve_office,omitempty"`
-	Phone       int64  `json:"phone,omitempty"`
 	Status      string `json:"status,omitempty"`
 	RespTime    string `json:"resp_time,omitempty"`
 }

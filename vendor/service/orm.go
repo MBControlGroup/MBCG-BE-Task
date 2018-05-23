@@ -249,3 +249,42 @@ func GetCommonPlaces(adminID int, isOffice bool) ([]PlaceInBasicInfo, error) {
 	fmt.Println(places)
 	return places, err
 }
+
+// GetOfficesAndMemsFromAdminID 根据AdminID获取单位、下属单位及成员
+func GetOfficesAndMemsFromAdminID(adminID int) (*OfficeInfo, error) {
+	officeID := getOfficeIDFromAdminID(adminID)
+
+	var officeInfo OfficeInfo
+	officeDetail, memCounts, err := getOfficeDetail(officeID)
+	officeInfo.OfficeDetail = officeDetail
+
+	return &officeInfo, err
+}
+
+func getOfficeDetail(officeID int) (Office, int, error) {
+	office := Office{ID: officeID}
+
+	// 根据OfficeID获取单位名称
+	o := orm.NewOrm()
+	o.Raw("SELECT name FROM Offices WHERE office_id = ?", officeID).QueryRow(&(office.Name))
+
+	// 根据OfficeID获取所含民兵及人数
+	rawSQL := "SELECT soldier_id, name FROM Soldiers WHERE serve_office_id = ?"
+	memCounts, _ := o.Raw(rawSQL, officeID).QueryRows(&(office.Members))
+
+	// 获取该单位的下属单位
+	var lowerOffIDs []int
+	rawSQL = "SELECT lower_office_id FROM OfficeRelationships WHERE higher_office_id = ?"
+	o.Raw(rawSQL, officeID).QueryRows(&lowerOffIDs)
+	for _, lowerOffID := range lowerOffIDs {
+		lowerOffice, counts, err := getOfficeDetail(lowerOffID)
+		if err != nil {
+			return office, 0, err
+		}
+
+		office.LowerOffs = append(office.LowerOffs, lowerOffice)
+		memCounts += int64(counts)
+	}
+
+	return office, int(memCounts), nil
+}
