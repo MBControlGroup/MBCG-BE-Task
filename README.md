@@ -147,7 +147,7 @@ response:
 		{
 			"office_id"	:123456,			// 单位id
 			"name"		:"海珠人武部",			// 单位名称
-			"memebers"	:[
+			"members"	:[
 				{
 					"soldier_id"	:123456,	// 民兵id
 					"name"		:"李四",	// 民兵姓名
