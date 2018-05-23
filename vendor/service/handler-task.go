@@ -54,15 +54,15 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 }
 
 type BasicInfo struct {
-	IsOff  bool `json:"is_office"`
-	Places []PlaceInBasicInfo
+	IsOff  bool               `json:"is_office"`
+	Places []PlaceInBasicInfo `json:"places"`
 }
 
 type PlaceInBasicInfo struct {
-	ID   int     `json:"place_id"`
-	Name string  `json:"place_name"`
-	Lat  float64 `json:"place_lat"`
-	Lng  float64 `json:"place_lng"`
+	ID   int     `json:"place_id" orm:"column(place_id)"`
+	Name string  `json:"place_name" orm:"column(place_name)"`
+	Lat  float64 `json:"place_lat" orm:"column(place_lat)"`
+	Lng  float64 `json:"place_lng" orm:"column(place_lng)"`
 }
 
 // 获取基本信息, /task [GET]
@@ -74,7 +74,12 @@ func basicInfo(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 
-		places := GetCommonPlaces(adminID, isOffice)
+		// 获取Admin所在组织/单位的常用地点
+		places, err := GetCommonPlaces(adminID, isOffice)
+		if err != nil { // 查询出错
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			return
+		}
 		info := BasicInfo{IsOff: isOffice, Places: places}
 		formatter.JSON(w, http.StatusOK, info)
 	}

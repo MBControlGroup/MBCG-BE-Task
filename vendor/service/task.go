@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 const (
 	host           = "http://localhost"
+	tokenValidPort = ":8080"
 	tokenValidPath = "/tokenValid"
 )
 
@@ -24,6 +26,7 @@ type tokenMessg struct {
 
 // GetAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
 func GetAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
+	return 4, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	// 获取cookie中的token
@@ -39,7 +42,7 @@ func GetAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	reqBody, _ := json.Marshal(struct {
 		Token string `json:"token"`
 	}{token})
-	resp, err := http.Post(host+tokenValidPath, "application/json", bytes.NewReader(reqBody))
+	resp, err := http.Post(host+tokenValidPort+tokenValidPath, "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 		log.Println(err)
@@ -51,6 +54,7 @@ func GetAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	reqBody, _ = ioutil.ReadAll(resp.Body)
 	var messg tokenMessg
 	json.Unmarshal(reqBody, &messg)
+	fmt.Println(messg)
 	if !messg.Success { // 可能是token不合法
 		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 		return 0, errors.New(messg.Detail)

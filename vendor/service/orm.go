@@ -92,7 +92,7 @@ func getOrgIDFromAdminID(adminID int) int {
 func getOfficeIDFromAdminID(adminID int) int {
 	var officeID int
 	o := orm.NewOrm()
-	o.Raw("SELECT office_id FROM OfficeRelationships WHERE admin_id = ?", adminID).QueryRow(&officeID)
+	o.Raw("SELECT office_id FROM OfficeAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&officeID)
 	return officeID
 }
 
@@ -226,9 +226,26 @@ func EndTask(taskID, adminID int) error {
 	return nil
 }
 
-func GetCommonPlaces(adminID int, isOffice bool) []PlaceInBasicInfo {
+// GetCommonPlaces 根据AdminID与Admin类型isOffice, 查找Admin对应的组织/单位的常用地点.
+// 查找顺序: admin_id -> org_id/office_id -> place_id -> all places
+func GetCommonPlaces(adminID int, isOffice bool) ([]PlaceInBasicInfo, error) {
 	var places []PlaceInBasicInfo
 	o := orm.NewOrm()
-	o.Raw("SELECT")
-	return places
+	rawSQL := "SELECT * FROM Places "
+	rawSQL += "WHERE place_id IN ( "
+	rawSQL += "SELECT place_id "
+	if isOffice { // 如果Admin类型是Office, 则从AdminID找出Office
+		rawSQL += "FROM OfficePlaces "
+		rawSQL += "WHERE office_id IN ( "
+		rawSQL += "SELECT office_id FROM OfficeAdminRelationships "
+	} else { // 如果Admin类型是Org, 则从AdminID找出Org
+		rawSQL += "FROM OrgPlaces "
+		rawSQL += "WHERE org_id IN ( "
+		rawSQL += "SELECT org_id FROM OrgAdminRelationships "
+	}
+	rawSQL += "WHERE admin_id = ?)"
+	rawSQL += ")"
+	_, err := o.Raw(rawSQL, adminID).QueryRows(&places)
+	fmt.Println(places)
+	return places, err
 }
