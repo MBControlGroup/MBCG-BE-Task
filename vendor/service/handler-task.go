@@ -137,3 +137,25 @@ func offices(formatter *render.Render) http.HandlerFunc {
 
 	}
 }
+
+type OfficeInfo struct {
+	TotalMems    int    `json:"total_mems"`
+	OfficeDetail Office `json:"office_detail"`
+}
+
+type Office struct {
+	ID   int    `json:"office_id"`
+	Name string `json:"name"`
+	Members
+}
+
+type Soldier struct {
+	ID          int    `json:"soldier_id"`
+	Name        string `json:"name"`
+	IMUserID    int    `json:"im_user_id,omitempty"`
+	IsAdmin     bool   `json:"is_admin,omitempty"`
+	ServeOffice string `json:"serve_office,omitempty"`
+	Phone       int64  `json:"phone,omitempty"`
+	Status      string `json:"status,omitempty"`
+	RespTime    string `json:"resp_time,omitempty"`
+}
