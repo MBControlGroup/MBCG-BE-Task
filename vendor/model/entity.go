@@ -8,7 +8,7 @@ type Task struct {
 	Launch  string `json:"launch_datetime"`
 	Gather  string `json:"gather_datetime"`
 	Detail  string `json:"detail"`
-	PlaceID int    `json:"gather_place_id"`
+	PlaceID int    `json:"place_id"`
 	Finish  string `json:"finish_datetime"`
 }
 
