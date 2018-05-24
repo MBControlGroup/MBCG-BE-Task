@@ -17,10 +17,10 @@ request:
 	"launch_datetime"	:"2018-05-06 17:04:01",	// 发起时间，可缺省
 	"gather_datetime"	:"2018-05-07 20:00:00",	// 集合时间
 	"detail"		:"任务详情",		// 任务详情
-	"gather_place_id"	:123456,		// 集合地点id，为-1视为新建地点
-	"gather_place_name"	:"集合地点名称",		// 可缺省
-	"gather_place_lat"	:39.071510,		// 集合地点纬度，可缺省
-	"gather_place_lng"	:117.190091,		// 集合地点经度，可缺省
+	"place_id"	:123456,		// 集合地点id，为-1视为新建地点
+	"place_name"	:"集合地点名称",		// 可缺省
+	"place_lat"	:39.071510,		// 集合地点纬度，可缺省
+	"place_lng"	:117.190091,		// 集合地点经度，可缺省
 	"finish_datetime"	:"2018-05-07 21:00:00",	// 任务结束时间
 	"accept_org_ids"	:[11,22,33,44],		// 接受该任务的组织id，可缺省
 	"accept_office_ids"	:[11,22,33,44],		// 接受该任务的单位id，可缺省
