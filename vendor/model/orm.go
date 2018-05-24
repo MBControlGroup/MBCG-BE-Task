@@ -1,4 +1,4 @@
-package service
+package model
 
 import (
 	"errors"
@@ -17,7 +17,10 @@ func init() {
 	//orm.RegisterModelWithPrefix("mb", new(Task), new(Place))
 }
 
-func getAdminType(adminID int) (isOff bool, err error) {
+// DBManager 数据层的管理器
+type DBManager struct{}
+
+func (db DBManager) GetAdminType(adminID int) (isOff bool, err error) {
 	o := orm.NewOrm()
 	var adminType string
 	err = o.Raw("SELECT admin_type FROM Admins WHERE admin_id = ?", adminID).QueryRow(&adminType)
@@ -36,18 +39,18 @@ func getAdminType(adminID int) (isOff bool, err error) {
 }
 
 // CreateTask 在表Tasks创建新任务，并在表GatherNotifications创建新的集合通知
-func CreateTask(task *Task, place *Place, acmem *AcMem) error {
+func (db DBManager) CreateTask(task *Task, place *Place, acmem *AcMem) error {
 	o := orm.NewOrm()
 	o.Begin()
 
 	// 创建新任务Tasks，若地点是新的，则创建新地点Places
-	err := insertTask(&o, task, place)
+	err := db.insertTask(&o, task, place)
 	if err != nil {
 		o.Rollback()
 		return err
 	}
 	// 创建新的AcceptMembers，即插入TaskAcceptOffices, TaskAcceptOrgs, GatherNotifications
-	err = insertAcMem(&o, task.ID, acmem)
+	err = db.insertAcMem(&o, task.ID, acmem)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -59,7 +62,7 @@ func CreateTask(task *Task, place *Place, acmem *AcMem) error {
 	return nil
 }
 
-func insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, error) {
+func (db DBManager) insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, error) {
 	// 插入Places
 	rawSQL := "INSERT INTO Places(place_name, place_lat, place_lng) VALUES(?,?,?)"
 	result, err := (*o).Raw(rawSQL, place.Name, place.Lat, place.Lng).Exec()
@@ -70,11 +73,11 @@ func insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, er
 
 	// 关联 常用地点 与 组织/单位
 	if isOffice { // 插入OfficePlaces
-		officeID := getOfficeIDFromAdminID(task.AdminID) // 通过adminID获取officeID
+		officeID := db.getOfficeIDFromAdminID(task.AdminID) // 通过adminID获取officeID
 		rawSQL = "INSERT INTO OfficePlaces (office_id, place_id) VALUES (?, ?)"
 		(*o).Raw(rawSQL, officeID, placeID).Exec()
 	} else { // 插入OrgPlaces
-		orgID := getOrgIDFromAdminID(task.AdminID) // 通过adminID获取orgID
+		orgID := db.getOrgIDFromAdminID(task.AdminID) // 通过adminID获取orgID
 		rawSQL = "INSERT INTO OrgPlaces (org_id, place_id) VALUES (?, ?)"
 		(*o).Raw(rawSQL, orgID, placeID).Exec()
 	}
@@ -82,28 +85,28 @@ func insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, er
 	return int(placeID), nil
 }
 
-func getOrgIDFromAdminID(adminID int) int {
+func (db DBManager) getOrgIDFromAdminID(adminID int) int {
 	var orgID int
 	o := orm.NewOrm()
 	o.Raw("SELECT org_id FROM OrgAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&orgID)
 	return orgID
 }
 
-func getOfficeIDFromAdminID(adminID int) int {
+func (db DBManager) getOfficeIDFromAdminID(adminID int) int {
 	var officeID int
 	o := orm.NewOrm()
 	o.Raw("SELECT office_id FROM OfficeAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&officeID)
 	return officeID
 }
 
-func insertTask(o *orm.Ormer, task *Task, place *Place) error {
+func (db DBManager) insertTask(o *orm.Ormer, task *Task, place *Place) error {
 	var err error
 	if task.PlaceID == -1 { // 需要新建单位/组织的常用地点
-		isOffice, err := getAdminType(task.AdminID)
+		isOffice, err := db.GetAdminType(task.AdminID)
 		if err != nil {
 			return err
 		}
-		task.PlaceID, err = insertPlace(o, task, isOffice, place)
+		task.PlaceID, err = db.insertPlace(o, task, isOffice, place)
 		if err != nil {
 			return err
 		}
@@ -121,7 +124,7 @@ func insertTask(o *orm.Ormer, task *Task, place *Place) error {
 	return nil
 }
 
-func insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
+func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 	taskIDStr := strconv.Itoa(taskID)
 
 	// 批量插入“接受任务的单位”
@@ -146,13 +149,13 @@ func insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 	uniqueSoldrIDs := make(map[int]bool) // 从单位、组织、个人中选取的所有民兵ID，因为人员可能有重复，故用map消重
 	var soldierIDs []int
 	// 从单位ID获取民兵ID
-	soldierIDs = getSoldrIDsFromOfficeIDs(acmem.AcOffIDs)
+	soldierIDs = db.getSoldrIDsFromOfficeIDs(acmem.AcOffIDs)
 	for _, soldrID := range soldierIDs {
 		uniqueSoldrIDs[soldrID] = true
 	}
 
 	// 从组织ID获取民兵ID
-	soldierIDs = getSoldrIDsFromOrgIDs(acmem.AcOrgIDs)
+	soldierIDs = db.getSoldrIDsFromOrgIDs(acmem.AcOrgIDs)
 	for _, soldrID := range soldierIDs {
 		uniqueSoldrIDs[soldrID] = true
 	}
@@ -179,7 +182,7 @@ func insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 }
 
 // 通过单位ID获取所有民兵ID
-func getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
+func (db DBManager) getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
 	var soldierIDs []int
 	rawSQL := "SELECT DISTINCT(soldier_id) FROM Soldiers WHERE serve_office_id IN "
 	//rawSQL := "SELECT soldier_id FROM Soldiers WHERE serve_office_id IN "
@@ -190,7 +193,7 @@ func getSoldrIDsFromOfficeIDs(officeIDs arrayInt) []int {
 }
 
 // 通过组织ID获取所有民兵ID
-func getSoldrIDsFromOrgIDs(orgIDs arrayInt) []int {
+func (db DBManager) getSoldrIDsFromOrgIDs(orgIDs arrayInt) []int {
 	var soldierIDs []int
 	rawSQL := "SELECT DISTINCT(soldier_id) FROM OrgSoldierRelationships WHERE serve_org_id IN "
 	//rawSQL := "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id IN "
@@ -217,7 +220,7 @@ func (num arrayInt) String() string {
 }
 
 // EndTask 结束任务, 把任务结束时间设为当前时间
-func EndTask(taskID, adminID int) error {
+func (db DBManager) EndTask(taskID, adminID int) error {
 	o := orm.NewOrm()
 	_, err := o.Raw("UPDATE Tasks SET finish_datetime = NOW() WHERE task_id = ?", taskID).Exec()
 	if err != nil {
@@ -228,8 +231,8 @@ func EndTask(taskID, adminID int) error {
 
 // GetCommonPlaces 根据AdminID与Admin类型isOffice, 查找Admin对应的组织/单位的常用地点.
 // 查找顺序: admin_id -> org_id/office_id -> place_id -> all places
-func GetCommonPlaces(adminID int, isOffice bool) ([]PlaceInBasicInfo, error) {
-	var places []PlaceInBasicInfo
+func (db DBManager) GetCommonPlaces(adminID int, isOffice bool) ([]Place, error) {
+	var places []Place
 	o := orm.NewOrm()
 	rawSQL := "SELECT * FROM Places "
 	rawSQL += "WHERE place_id IN ( "
@@ -251,19 +254,22 @@ func GetCommonPlaces(adminID int, isOffice bool) ([]PlaceInBasicInfo, error) {
 }
 
 // GetOfficesAndMemsFromAdminID 根据AdminID获取单位、下属单位及成员
-func GetOfficesAndMemsFromAdminID(adminID int) (*OfficeInfo, error) {
-	officeID := getOfficeIDFromAdminID(adminID)
+func (db DBManager) GetOfficesAndMemsFromAdminID(adminID int) (*OfficeInfo, error) {
+	officeID := db.getOfficeIDFromAdminID(adminID)
 
 	var officeInfo OfficeInfo
-	officeDetail, memCounts, err := getOfficeDetail(officeID)
+	officeDetail, memCounts, err := db.getOfficeDetail(officeID)
+	if err != nil {
+		return nil, err
+	}
+
 	officeInfo.OfficeDetail = officeDetail
 	officeInfo.TotalMems = memCounts
-
 	return &officeInfo, err
 }
 
 // 递归, 获取下属单位、人员及人数
-func getOfficeDetail(officeID int) (Office, int, error) {
+func (db DBManager) getOfficeDetail(officeID int) (Office, int, error) {
 	office := Office{ID: officeID, LowerOffs: make([]Office, 0)}
 
 	// 根据OfficeID获取单位名称
@@ -279,7 +285,7 @@ func getOfficeDetail(officeID int) (Office, int, error) {
 	rawSQL = "SELECT lower_office_id FROM OfficeRelationships WHERE higher_office_id = ?"
 	o.Raw(rawSQL, officeID).QueryRows(&lowerOffIDs)
 	for _, lowerOffID := range lowerOffIDs {
-		lowerOffice, counts, err := getOfficeDetail(lowerOffID)
+		lowerOffice, counts, err := db.getOfficeDetail(lowerOffID)
 		if err != nil {
 			return office, 0, err
 		}

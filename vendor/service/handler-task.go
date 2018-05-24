@@ -1,20 +1,37 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"model"
 	"net/http"
 	"net/url"
 
 	"github.com/unrolled/render"
 )
 
+// DBInfo 全局的数据层管理器
+var DBInfo model.DBManager
+
+type tokenMessg struct {
+	Success bool
+	Detail  string
+	Id      int
+}
+
 const (
 	tokenCookieName        = "token"
 	reLoginMsg             = "登录超时，请重新登录"
 	internalServerErrorMsg = "很抱歉，服务器出错了"
-	loginPath              = "/signin"
+
+	host           = "http://localhost"
+	tokenValidPort = ":8080"
+	tokenValidPath = "/tokenValid"
+	loginPath      = "/signin"
 )
 
 type redirectMsg struct {
@@ -44,8 +61,8 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 		// TODO: 获取管理员ID
 
 		// 结束任务
-		err := EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
-		if err != nil {                   // DB UPDATE 出错
+		err := DBInfo.EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
+		if err != nil {                          // DB UPDATE 出错
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else { // 成功结束任务
 			w.WriteHeader(http.StatusNoContent)
@@ -53,29 +70,23 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 	}
 }
 
+// BasicInfo 用于 获取基本信息
 type BasicInfo struct {
-	IsOff  bool               `json:"is_office"`
-	Places []PlaceInBasicInfo `json:"places"`
-}
-
-type PlaceInBasicInfo struct {
-	ID   int     `json:"place_id" orm:"column(place_id)"`
-	Name string  `json:"place_name" orm:"column(place_name)"`
-	Lat  float64 `json:"place_lat" orm:"column(place_lat)"`
-	Lng  float64 `json:"place_lng" orm:"column(place_lng)"`
+	IsOff  bool          `json:"is_office"`
+	Places []model.Place `json:"places"`
 }
 
 // 获取基本信息, /task [GET]
 func basicInfo(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 获取管理员ID和类型
-		adminID, isOffice, err := GetAdminAndType(w, r)
+		adminID, isOffice, err := getAdminAndType(w, r)
 		if err != nil { // 若出错, 则GetAdminAndType函数已经对ResponseWriter进行写入, 可直接返回
 			return
 		}
 
 		// 获取Admin所在组织/单位的常用地点
-		places, err := GetCommonPlaces(adminID, isOffice)
+		places, err := DBInfo.GetCommonPlaces(adminID, isOffice)
 		if err != nil { // 查询出错
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 			return
@@ -89,8 +100,8 @@ func basicInfo(formatter *render.Render) http.HandlerFunc {
 func createTask(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 获取AdminID
-		adminID, err := GetAdminID(w, r)
-		if err != nil { // 若出错, GetAdminID 已经对 ResponseWriter 写入信息, 故可直接 return
+		adminID, err := getAdminID(w, r)
+		if err != nil { // 若出错, getAdminID 已经对 ResponseWriter 写入信息, 故可直接 return
 			return
 		}
 
@@ -101,9 +112,9 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 
 		// 解析Request.Body中的JSON数据
 		var (
-			reqTask  Task
-			reqPlace Place
-			reqAcMem AcMem
+			reqTask  model.Task
+			reqPlace model.Place
+			reqAcMem model.AcMem
 		)
 		reqTask.AdminID = adminID
 		json.Unmarshal([]byte(reqBytes), &reqTask)  // 从json中解析Task的内容
@@ -115,7 +126,7 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		fmt.Println(reqPlace)
 		fmt.Println(reqAcMem)
 
-		err = CreateTask(&reqTask, &reqPlace, &reqAcMem)
+		err = DBInfo.CreateTask(&reqTask, &reqPlace, &reqAcMem)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else {
@@ -135,13 +146,13 @@ func orgs(formatter *render.Render) http.HandlerFunc {
 func offices(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 获取AdminID
-		adminID, err := GetAdminID(w, r)
+		adminID, err := getAdminID(w, r)
 		if err != nil {
 			return
 		}
 
 		// 从AdminID获取Offices和成员
-		officeInfo, err := GetOfficesAndMemsFromAdminID(adminID)
+		officeInfo, err := DBInfo.GetOfficesAndMemsFromAdminID(adminID)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 			return
@@ -151,28 +162,60 @@ func offices(formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-// OfficeInfo 获取下属单位及人员
-type OfficeInfo struct {
-	TotalMems    int    `json:"total_mems"`
-	OfficeDetail Office `json:"office_detail"`
+// getAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
+func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
+	return 3, nil
+	formatter := render.New(render.Options{IndentJSON: true})
+
+	// 获取cookie中的token
+	c, err := r.Cookie(tokenCookieName)
+	if err != nil || c.Value == "" { // 用户可能登录超时，需重新登录
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		log.Println(err)
+		return 0, err
+	}
+	token := c.Value
+
+	// 访问 /tokenValid
+	reqBody, _ := json.Marshal(struct {
+		Token string `json:"token"`
+	}{token})
+	resp, err := http.Post(host+tokenValidPort+tokenValidPath, "application/json", bytes.NewReader(reqBody))
+	if err != nil {
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		log.Println(err)
+		return 0, errors.New("error: unable to validate identiy")
+	}
+	defer resp.Body.Close()
+
+	// 获取/tokenValid 返回的信息,包括 AdminID、token是否valid等
+	reqBody, _ = ioutil.ReadAll(resp.Body)
+	var messg tokenMessg
+	json.Unmarshal(reqBody, &messg)
+	fmt.Println(messg)
+	if !messg.Success { // 可能是token不合法
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		return 0, errors.New(messg.Detail)
+	}
+	return messg.Id, nil // token合法，返回 AdminID
 }
 
-// Office 目前主要针对"获取下属单位及人员"设计
-type Office struct {
-	ID        int       `json:"office_id"`
-	Name      string    `json:"name"`
-	Members   []Soldier `json:"members"`
-	LowerOffs []Office  `json:"lower_offices"`
-}
+// getAdminAndType 输入token字符串, 返回管理员ID和类型(true: 单位, false: 组织)
+func getAdminAndType(w http.ResponseWriter, r *http.Request) (adminID int, isOff bool, err error) {
+	formatter := render.New(render.Options{IndentJSON: true})
 
-// Soldier 用于所有JSON数据的传输
-type Soldier struct {
-	ID          int    `json:"soldier_id" orm:"column(soldier_id)"`
-	Name        string `json:"name" orm:"column(name)"`
-	Phone       int64  `json:"phone,omitempty" orm:"column(phone_num)"`
-	IMUserID    int    `json:"im_user_id,omitempty" orm:"column(im_user_id)"`
-	IsAdmin     bool   `json:"is_admin,omitempty"`
-	ServeOffice string `json:"serve_office,omitempty"`
-	Status      string `json:"status,omitempty"`
-	RespTime    string `json:"resp_time,omitempty"`
+	// 获取管理员ID
+	adminID, err = getAdminID(w, r)
+	if err != nil { // 可能是token不合法
+		return adminID, false, err
+	}
+
+	// 获取管理员类型
+	isOff, err = DBInfo.GetAdminType(adminID)
+	if err != nil { // 可能无法通过AdminID找到相应的管理员信息
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		log.Println(err)
+		return adminID, false, err
+	}
+	return adminID, isOff, nil
 }
