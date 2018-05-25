@@ -1,8 +1,8 @@
 # 任务管理 [/task]
 
-RESTful API 与 JSON 数据格式
+这是RESTful API 与 JSON 数据格式的详细说明
 
-[REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
+因为数据比较多,可以查看API的简化版: [REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
 
 [Apiary](https://task25.docs.apiary.io/#)
 
@@ -17,10 +17,10 @@ request:
 	"launch_datetime"	:"2018-05-06 17:04:01",	// 发起时间，可缺省
 	"gather_datetime"	:"2018-05-07 20:00:00",	// 集合时间
 	"detail"		:"任务详情",		// 任务详情
-	"gather_place_id"	:123456,		// 集合地点id，为-1视为新建地点
-	"gather_place_name"	:"集合地点名称",		// 可缺省
-	"gather_place_lat"	:39.071510,		// 集合地点纬度，可缺省
-	"gather_place_lng"	:117.190091,		// 集合地点经度，可缺省
+	"place_id"	:123456,		// 集合地点id，为-1视为新建地点
+	"place_name"	:"集合地点名称",		// 可缺省
+	"place_lat"	:39.071510,		// 集合地点纬度，可缺省
+	"place_lng"	:117.190091,		// 集合地点经度，可缺省
 	"finish_datetime"	:"2018-05-07 21:00:00",	// 任务结束时间
 	"accept_org_ids"	:[11,22,33,44],		// 接受该任务的组织id，可缺省
 	"accept_office_ids"	:[11,22,33,44],		// 接受该任务的单位id，可缺省
@@ -69,6 +69,7 @@ response:
 		"url":"/user"
 	}
 ```
+
 ### 结束任务 [/task] [PUT]
 ```
 request:
@@ -91,17 +92,19 @@ response:
 ```
 
 ### 获取所有下属组织及人员 [/task/orgs] [GET]
-点击"发布任务"时，服务器会返回可选择的组织、人员
+指挥官点击"发布任务"时，网页需要显示可选择的组织、人员
 
-返回指挥官所在单位内的所在组织和下属组织,和所有下属单位及单位所含的组织
+对于组织的负责人，返回指挥官所在组织、下属组织及人员，和指挥官所在单位的名称
+
+对于单位的负责人，返回指挥官所在单位、下属单位名称及所含的组织和人员
 ```
 request:
 	null
 response:
 	200 OK
 	{
-		"total_mems":200,		// 所有下属单位总人数.因为一个人可在多个组织内,故返回单位人数
-		"orgs_detail":			// 组织详情
+		"total_mems":200,		// 总人数，人员不会重复
+		"detail":			// 详情
 		{
 			"office_name":"海珠人武部",		// 单位名称
 			"orgs":[				// 单位所含有的组织
@@ -111,16 +114,16 @@ response:
 					"members":[		// 组织成员
 						{
 							"soldier_id"	:123456,	// 民兵id
-							"name"		:"张三",	// 民兵姓名
-							"is_admin"	:true		// 是否为管理员
+							"name"		:"张三",		// 民兵姓名
+							"is_admin"	:true		// 是否为管理员. 若为false, 则不显示这一项
 						},
 						...
 					],
-					"lower_orgs_id":[11,22,33]			// 下属组织id
+					"lower_org_ids":[11,22,33]			// 下属组织id
 				},
 				...
 			],
-			"lower_offices":[			// 下属单位,嵌套"orgs_detail"
+			"lower_offices":[			// 下属单位,嵌套"detail"
 				{},
 				...
 			]
@@ -150,11 +153,11 @@ response:
 			"members"	:[
 				{
 					"soldier_id"	:123456,	// 民兵id
-					"name"		:"李四",	// 民兵姓名
+					"name"		:"李四",		// 民兵姓名
 				},
 				...
 			]
-			"lower_offices 下级单位":[			// 嵌套 office_detail
+			"lower_offices":[			// 嵌套 office_detail
 				{},
 				...
 			]
@@ -192,7 +195,7 @@ response:
 		"data":[
 			{
 				"title"			:"消防演习",		// 任务主题
-				"launch_admin"		:"海珠区一排",		// 发起人
+				"launch_admin"		:"海珠区一排",		// 发起单位/组织
 				"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
 				"gather_datetime"	:"2018-05-06 13:00:00",	// 集合时间
 				"gather_place"		:"新天地",		// 集合地点
@@ -226,7 +229,7 @@ response:
 		"data":[
 			{
 				"title"			:"消防演习",		// 任务主题
-				"launch_admin"		:"海珠区一排",		// 发起人
+				"launch_admin"		:"海珠区一排",		// 发起单位/组织
 				"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
 				"gather_place"		:"新天地",		// 集合地点
 				"mem_count"		:30,			// 目标征集人数
@@ -301,7 +304,7 @@ response:
 				"members"	:[		// 单位中参与任务的人员
 					{
 						"soldier_id"	:123456,	// 民兵id
-						"name"			:"王五",	// 民兵姓名
+						"name"		:"王五",		// 民兵姓名
 						"im_user_id"	:123456		// 即时通讯id
 					},
 					...
@@ -312,13 +315,13 @@ response:
 		"orgs":[					// 组织.若发布任务时没选择组织,则"orgs"为空
 			{
 				"name"		:"海珠区一排",	// 组织名称
-				"orgs_level":"S"/"D"/"C",	// 所属单位的级别.S代表街道，D代表区，C代表市
+				"orgs_level"	:"S"/"D"/"C",	// 所属单位的级别.S代表街道，D代表区，C代表市
 				"members"	:[
 					{
 						"soldier_id"	:123456,	// 民兵id
-						"name"			:"王五",	// 民兵姓名
+						"name"		:"王五",		// 民兵姓名
 						"im_user_id"	:123456,	// 即时通讯id
-						"is_admin"		:true		// 是否为组织的管理员
+						"is_admin"	:true		// 是否为组织的管理员. 若为false, 则不显示这一项
 					},
 					...
 				]
@@ -327,10 +330,9 @@ response:
 		],
 		"indiv":[	// 上级可能单独选了某些人发布任务.若上级没有单独选择某些人,则"indiv"为空
 			{
-				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",	// 民兵姓名
+				"soldier_id"	:123456,	// 民兵id
+				"name"		:"张三",		// 民兵姓名
 				"serve_office"	:"海珠人武部",	// 所属单位名称
-				"serve_orgs"	:"海珠区一排",	// 所属组织名称,可能返回第一个找到的组织
 				"im_user_id"	:123456		// 即时通讯id
 			},
 			...
@@ -346,7 +348,7 @@ response:
 
 
 ## 任务响应情况
-响应情况包括响应人数、接受人数、平均接受任务耗时，这些信息在“查看任务响应情况”中。
+响应情况包括响应人数、接受人数、平均响应耗时，这些信息在“查看任务响应情况”中。
 
 响应情况还包括收到集合通知的人员列表，列表包含响应状态（未响应、接受、拒绝）和响应耗时等，这些信息在“查看任务的响应人员列表”中。
 #### 查看任务响应情况 [/task/response/{task_id}] [GET]
@@ -357,11 +359,11 @@ request:
 response:
 	200 OK
 	{
-		"mem_count"	:30,	// 目标征集人数
+		"mem_count"	:30,		// 目标征集人数
 		"notify_count"	:100,		// 通知人数
 		"response_count":70,		// 响应人数
 		"accept_count"	:30,		// 接受人数
-		"avg_acpt_time"	:"00:30:10"	// 平均接受任务耗时
+		"avg_resp_time"	:"00:30:10"	// 平均响应耗时
 	}
 
 	307 Temporary Redirect
@@ -386,12 +388,12 @@ response:
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",			// 民兵姓名
+				"name"		:"张三",			// 民兵姓名
 				"im_user_id"	:123456,		// 即时通讯id
-				"phone"			:13600000000,	// 手机号码
-				"serve_office"	:"海珠人武部",	// 所属单位
-				"status"		:"UR"/"RF"/"AC",  // 响应状态,"UR"代表未读,"RF"拒绝,"AC"接受
-				"resp_time"		:"2018-05-06 12:02:00"	// 响应时间
+				"phone"		:13600000000,		// 手机号码
+				"serve_office"	:"海珠人武部",		// 所属单位
+				"status"	:"UR"/"RF"/"AC", 	 // 响应状态,"UR"代表未读,"RF"拒绝,"AC"接受
+				"resp_time"	:"2018-05-06 12:02:00"	// 响应时间
 			},
 			...
 		]
@@ -405,9 +407,9 @@ response:
 ```
 
 ## 任务集合情况
-集合情况包括签到人数、平均签到耗时等信息，这些信息在“查看任务集合情况”中。
+集合情况包括签到人数，这些信息在“查看任务集合情况”中。
 
-集合情况还包括签到的人员列表，列表包含是否已签到、和签到耗时等，这些信息在“查看任务的集合人员列表”中。
+集合情况还包括签到的人员列表，列表包含是否已签到等，这些信息在“查看任务的集合人员列表”中。
 
 ### 查看任务集合情况 [/task/gather/{task_id}] [GET]
 ```
@@ -416,9 +418,7 @@ request:
 response:
 	200 OK
 	{
-		"ac_counts"		:50,		// 接受任务的人数
-		"check_counts"	:30,		// 签到人数
-		"avg_chk_time"	:"00:50:31"	// 平均签到耗时
+		"check_counts"	:30		// 签到人数
 	}
 
 	307 Temporary Redirect
@@ -428,7 +428,7 @@ response:
 	}
 ```
 
-#### 查看任务的集合人员列表 [/task/working/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
+### 查看任务的集合人员列表 [/task/working/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
 item_counts_per_page: 每页显示人员的数量
 
 cur_page: 当前页数
@@ -443,12 +443,11 @@ response:
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
-				"name"			:"张三",			// 民兵姓名
+				"name"		:"张三",			// 民兵姓名
 				"im_user_id"	:123456,		// 即时通讯id
-				"phone"			:13600000000,	// 手机号码
-				"serve_office"	:"海珠人武部",	// 所属单位
-				"status"		:0/1,  			// 签到状态,0代表未签到,1代表已签到
-				"check_time"	:"2018-05-06 15:02:00"	// 签到时间
+				"phone"		:13600000000,		// 手机号码
+				"serve_office"	:"海珠人武部",		// 所属单位
+				"status"	:"UN"/"CH"		// 签到状态,UN代表未签到,CH代表已签到
 			},
 			...
 		]

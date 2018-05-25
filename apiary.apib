@@ -13,7 +13,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 发布任务 [POST]
 
-+ Request (application/json)
++ Request (application/json; charset=utf-8)
 
         {
             "title": "消防演习",
@@ -21,10 +21,10 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "launch_datetime": "2018-05-06 17:04:01",
             "gather_datetime": "2018-05-07 20:00:00",
             "detail": "第二次消防演习",
-            "gather_place_id": 123456,
-            "gather_place_name": "小谷围消防局",
-            "gather_place_lat": 39.071510,
-            "gather_place_lng": 117.190091,
+            "place_id": 123456,
+            "place_name": "小谷围消防局",
+            "place_lat": 39.071510,
+            "place_lng": 117.190091,
             "finish_datetime": "2018-05-07 21:00:00",
             "accept_org_ids": [11,22],
             "accept_office_ids": [11,22],
@@ -35,7 +35,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取基本信息 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -71,13 +71,13 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取所有下属组织及成员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
         {
             "total_mems": 200,
-            "orgs_detail": {
+            "detail": {
                 "office_name": "海珠人武部",
                 "orgs": [
                     {
@@ -90,11 +90,10 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                                 "is_admin": true
                             },{
                                 "soldier_id": 654321,
-                                "name": "李四",
-                                "is_admin": false
+                                "name": "李四"
                             }
                         ],
-                        "lower_orgs_id":[654321]
+                        "lower_org_ids":[654321]
                     },{
                         "org_id": 654321,
                         "name": "海珠区二排",
@@ -105,11 +104,10 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                                 "is_admin": true
                             },{
                                 "soldier_id": 654321,
-                                "name": "李四",
-                                "is_admin": false
+                                "name": "李四"
                             }
                         ],
-                        "lower_orgs_id":[]
+                        "lower_org_ids":[]
                     }
                 ],
                 "lower_offices":[
@@ -126,7 +124,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                                         "is_admin": true
                                     }
                                 ],
-                                "lower_orgs_id":[654321]
+                                "lower_org_ids":[654321]
                             },{
                                 "org_id": 654321,
                                 "name": "琶洲二连",
@@ -137,7 +135,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                                         "is_admin": false
                                     }
                                 ],
-                                "lower_orgs_id":[]
+                                "lower_org_ids":[]
                             }
                         ],
                         "lower_offices":[]
@@ -150,7 +148,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ### 获取所有下属单位及成员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -160,7 +158,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             {
                 "office_id": 123456,
                 "name": "海珠人武部",
-                "memebers": [
+                "members": [
                     {
                         "soldier_id": 123456,
                         "name": "李四"
@@ -174,7 +172,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     {
                         "office_id": 123456,
                         "name": "琶洲街道",
-                        "memebers": [
+                        "members": [
                             {
                                 "soldier_id": 123456,
                                 "name": "李四"
@@ -192,11 +190,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 
 
-## 执行中任务列表 [/task/working/20/1]
+## 执行中任务列表 [/task/working/{item_counts_per_page}/{cur_page}]
 
 ### 查看执行中任务列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -226,11 +224,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             ]
         }
 
-## 已完成任务列表 [/task/done/20/1]
+## 已完成任务列表 [/task/done/{item_counts_per_page}/{cur_page}]
 
 ### 查看已完成任务列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -261,11 +259,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
         }
 
 
-## 任务详情 [/task/detail/123456]
+## 任务详情 [/task/detail/{task_id}]
 
 ### 查看任务详情 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -285,11 +283,11 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "is_launcher": true
         }
 
-## 参与任务的人员 [/task/detail/mem/123456]
+## 参与任务的人员 [/task/detail/mem/{task_id}]
 
 ### 查看参与任务的人员 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -334,7 +332,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 
 
-## 任务响应情况 [/task/response/123456]
+## 任务响应情况 [/task/response/{task_id}]
 
 ### 查看任务响应情况 [GET]
 
@@ -347,14 +345,14 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "notify_count": 100,
             "response_count": 70,
             "accept_count": 30,
-            "avg_acpt_time": "00:30:10"
+            "avg_resp_time": "00:30:10"
         }
 
-## 任务的响应人员列表 [/task/working/response/mem/123456/20/1]
+## 任务的响应人员列表 [/task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
 ### 查看任务的响应人员列表 [GET]
 
-+ Response 200 (application/json)
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
@@ -383,7 +381,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
     }
 
 
-## 任务集合情况 [/task/gather/123456]
+## 任务集合情况 [/task/gather/{task_id}]
 
 ### 查看任务集合情况 [GET]
 
@@ -392,16 +390,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
     + Body
 
         {
-            "ac_counts": 50,
-            "check_counts": 30,
-            "avg_chk_time": "00:50:31"
+            "check_counts": 30
         }
 
-## 任务的集合人员列表 [/task/gather/mem/123456/20/1]
+## 任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
-### 查看任务的集合人员列表 [GET]
-
-+ Response 200 (applicaton/json)
+### 查看任务的集合人员列表 [GE
 
     + Body
 
@@ -415,16 +409,14 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "im_user_id": 123456,
                     "phone": 13600000000,
                     "serve_office": "海珠人武部",
-                    "status": 1,
-                    "check_time": "2018-05-06 15:02:00"
+                    "status": "CH"
                 },{
                     "soldier_id": 654321,
                     "name": "李四",
                     "im_user_id": 64321,
                     "phone": 13611111111,
                     "serve_office": "海珠人武部",
-                    "status": 0,
-                    "check_time": ""
+                    "status": "UN"
                 }
             ]
         }
