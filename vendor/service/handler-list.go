@@ -12,6 +12,19 @@ import (
 // 查看执行中任务的列表, /task/working/{countsPerPage}/{curPage}
 func workingList(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		getTaskList(formatter, false)(w, r)
+	}
+}
+
+// 查看已完成任务的列表, /task/done/{countsPerPage}/{curPage}
+func doneList(formatter *render.Render) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		getTaskList(formatter, true)(w, r)
+	}
+}
+
+func getTaskList(formatter *render.Render, isFinish bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// 解析URL参数
 		reqData := mux.Vars(r)
 		countsPerPageStr := reqData["countsPerPage"]
@@ -34,12 +47,5 @@ func workingList(formatter *render.Render) http.HandlerFunc {
 		}
 
 		formatter.JSON(w, http.StatusOK, taskList)
-	}
-}
-
-// 查看已完成任务的列表, /task/done/{countsPerPage}/{curPage}
-func doneList(formatter *render.Render) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
 	}
 }
