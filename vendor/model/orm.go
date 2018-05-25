@@ -3,8 +3,9 @@ package model
 import (
 	"errors"
 	"fmt"
-
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,8 +14,8 @@ import (
 func init() {
 	orm.Debug = true
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-	//orm.RegisterDataBase("default", "mysql", "mbcsdev:mbcsdev2018@tcp(222.200.180.59:9000)/MBDB?charset=utf8")
-	orm.RegisterDataBase("default", "mysql", "root:root2018@tcp(127.0.0.1:3306)/mb?charset=utf8")
+	orm.RegisterDataBase("default", "mysql", "mbcsdev:mbcsdev2018@tcp(222.200.180.59:9000)/MBDB?charset=utf8")
+	//orm.RegisterDataBase("default", "mysql", "root:root@tcp(127.0.0.1:3306)/mb?charset=utf8")
 	//orm.RegisterModelWithPrefix("mb", new(Task), new(Place))
 }
 
@@ -331,13 +332,16 @@ func (db DBManager) getTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) i
 	return taskCount
 }
 
-// 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
-// 这些Tasks是从数据库取出来的原生数据, 地点名称/status/发起组织单位等未获取
+// getTasksFromAdminIDs 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
+// 获取“执行中”“已完成”Tasks所需信息的交集， 但不包括发起单位、组织， 集合地点名称的信息
 func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []Tasklist {
 	var tasks []Tasklist
 
 	o := orm.NewOrm()
-	rawSQL := "SELECT task_id, title, mem_count, launch_admin_id, launch_datetime, gather_datetime, gather_place_id "
+	rawSQL := "SELECT task_id, title, mem_count, launch_admin_id, launch_datetime, gather_place_id "
+	if !isFinish { // 执行中的任务需要有gather_datetime. 已完成任务就不需要
+		rawSQL += ", gather_datetime "
+	}
 	rawSQL += "FROM Tasks "
 	rawSQL += "WHERE launch_admin_id IN " + fmt.Sprint(adminIDs)
 	if isFinish {
@@ -388,8 +392,48 @@ func (db DBManager) getTasksAndCountsFromAdminIDs(adminIDs arrayInt, isFinish bo
 	// 根据AdminID获取所在org/office名称
 	db.writeOrgOfficeNameFromAdminIDs(tasks)
 	// TODO : status, detail
+	if !isFinish { // 执行中任务， 计算status, detail信息
+		db.calTasksStatus(tasks)
+	} else { // 已完成任务, 计算response_count, accept_count, check_count信息
+
+	}
 
 	return tasks, taskCount
+}
+
+// 计算进行中任务的状态, 状态详情
+func (db DBManager) calTasksStatus(tasks []Tasklist) {
+	var waitGroup sync.WaitGroup
+
+	for i := range tasks {
+		waitGroup.Add(1)
+
+		go func(i int) {
+			defer waitGroup.Done()
+			// 获取该任务的接受人数
+			acceptCount := db.getAcceptCountsFromTask(tasks[i].ID)
+			gatherTime, _ := time.Parse("2006-01-02 15:04:05", tasks[i].GatherTime) // 把该任务的gather_time转为time.Time
+
+			if gatherTime.Unix() < time.Now().Unix() { // 执行中,已经过了集合时间, 即 集合时间 < NOW()
+				tasks[i].Status = "zx"
+			} else { // 可知以下情况都是 还未到集合时间, 即 集合时间 > NOW()
+				if acceptCount < tasks[i].MemCount { // 征集中"zj", 接受人数 < 目标人数 && 集合时间 > NOW()
+					tasks[i].Status = "zj"
+					tasks[i].StatusDetail = float32(acceptCount) / float32(tasks[i].MemCount)
+				}
+			}
+		}(i)
+	}
+
+	waitGroup.Wait()
+}
+
+func (db DBManager) getAcceptCountsFromTask(taskID int) int {
+	var count int
+	o := orm.NewOrm()
+	rawSQL := "SELECT COUNT(*) FROM GatherNotifications WHERE gather_task_id = ? AND read_status = 'AC'"
+	o.Raw(rawSQL, taskID).QueryRow(&count)
+	return count
 }
 
 // 给定一个highOrgID, 获取其所有下属(除去其本身)组织的AdminID
