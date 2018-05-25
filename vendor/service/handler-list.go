@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
@@ -12,8 +14,10 @@ func workingList(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 解析URL参数
 		reqData := mux.Vars(r)
-		countsPerPage := reqData["countsPerPage"]
-		curPage := reqData["curPage"]
+		countsPerPageStr := reqData["countsPerPage"]
+		countsPerPage, _ := strconv.Atoi(countsPerPageStr)
+		curPageStr := reqData["curPage"]
+		curPage, _ := strconv.Atoi(curPageStr)
 
 		// 获取AdminID及类型
 		adminID, isOffice, err := getAdminAndType(w, r)
@@ -21,12 +25,15 @@ func workingList(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 
-		if isOffice { // Admin是单位类型
-			DBInfo.
-		} else { // Admin是组织类型
-
+		// 获取任务列表
+		taskList, err := DBInfo.GetTaskList(false, isOffice, countsPerPage*(curPage-1), countsPerPage, adminID)
+		if err != nil {
+			fmt.Println(err)
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			return
 		}
 
+		formatter.JSON(w, http.StatusOK, taskList)
 	}
 }
 
