@@ -14,7 +14,7 @@ func init() {
 	orm.Debug = true
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	//orm.RegisterDataBase("default", "mysql", "mbcsdev:mbcsdev2018@tcp(222.200.180.59:9000)/MBDB?charset=utf8")
-	orm.RegisterDataBase("default", "mysql", "mbcsdev:mbcsdev2018@tcp(127.0.0.1:3306)/mb?charset=utf8")
+	orm.RegisterDataBase("default", "mysql", "root:root2018@tcp(127.0.0.1:3306)/mb?charset=utf8")
 	//orm.RegisterModelWithPrefix("mb", new(Task), new(Place))
 }
 
@@ -296,4 +296,28 @@ func (db DBManager) getOfficeDetail(officeID int) (Office, int, error) {
 	}
 
 	return office, int(memCounts), nil
+}
+
+// GetTaskList 获取任务列表(执行中, 已完成). 区分单位/组织, 每页显示数目, 当前页
+func (db DBManager) GetTaskList(isFinish, isOffice bool, offset, countsPerPage, adminID int) (*List, error) {
+	tasklist := List{Tasks: make([]Tasklist, 0)}
+	var taskCount int
+
+	if isOffice { // Admin类型为单位
+
+	} else { // Admin类型为组织
+		var curTaskCount int
+		for ; offset >= 0; offset = offset - curTaskCount {
+
+		}
+		orgID := db.getOrgIDFromAdminID(adminID)
+
+	}
+}
+
+func (db DBManager) getTaskCountFromAdminID(adminID int) int {
+	var count int
+	o := orm.NewOrm()
+	o.Raw("SELECT COUNT(*) FROM Tasks WHERE launch_admin_id = ?", adminID).QueryRow(&count)
+	return count
 }

@@ -207,6 +207,8 @@ func getAdminAndType(w http.ResponseWriter, r *http.Request) (adminID int, isOff
 	// 获取管理员ID
 	adminID, err = getAdminID(w, r)
 	if err != nil { // 可能是token不合法
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		log.Println(err)
 		return adminID, false, err
 	}
 

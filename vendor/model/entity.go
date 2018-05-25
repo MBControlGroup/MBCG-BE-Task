@@ -53,3 +53,25 @@ type Soldier struct {
 	Status      string `json:"status,omitempty"`
 	RespTime    string `json:"resp_time,omitempty"`
 }
+
+// List 页数, 任务列表
+type List struct {
+	PageCount int        `json:"total_pages"`
+	TaskCount int        `json:"total_tasks"`
+	Tasks     []Tasklist `json:"data"`
+}
+
+// Tasklist 任务列表
+type Tasklist struct {
+	Title        string  `json:"title"`
+	Admin        string  `json:"launch_admin"`
+	Launch       string  `json:"launch_datetime"`
+	GatherTime   string  `json:"gather_datetime,omitempty"`
+	Place        string  `json:"gather_place"`
+	MemCount     int     `json:"mem_count"`
+	Status       string  `json:"status,omitempty"`
+	StatusDetail float32 `json:"detail,omitempty"`
+	RespCount    int     `json:"response_count,omitempty"`
+	AcCount      int     `json:"accept_count,omitempty"`
+	CheckCount   int     `json:"check_count,omitempty"`
+}
