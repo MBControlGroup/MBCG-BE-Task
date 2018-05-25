@@ -1,5 +1,6 @@
 package model
 
+// Task 发布任务的POST数据
 type Task struct {
 	ID      int    `json:"task_id"`
 	Title   string `json:"title"`
@@ -63,12 +64,15 @@ type List struct {
 
 // Tasklist 任务列表
 type Tasklist struct {
-	Title        string  `json:"title"`
-	Admin        string  `json:"launch_admin"`
-	Launch       string  `json:"launch_datetime"`
-	GatherTime   string  `json:"gather_datetime,omitempty"`
+	ID           int     `json:"-" orm:"column(task_id)`
+	Title        string  `json:"title" orm:"column(title)"`
+	Launcher     string  `json:"launch_admin"`
+	AdminID      int     `json:"-" orm:"column(launch_admin_id)"`
+	LaunchTime   string  `json:"launch_datetime" orm:"column(launch_datetime)"`
+	GatherTime   string  `json:"gather_datetime,omitempty" orm:"column(gather_datetime)"`
+	PlaceID      int     `json:"-" orm:"column(gather_place_id)"`
 	Place        string  `json:"gather_place"`
-	MemCount     int     `json:"mem_count"`
+	MemCount     int     `json:"mem_count" orm:"column(mem_count)"`
 	Status       string  `json:"status,omitempty"`
 	StatusDetail float32 `json:"detail,omitempty"`
 	RespCount    int     `json:"response_count,omitempty"`

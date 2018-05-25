@@ -22,7 +22,7 @@ func workingList(formatter *render.Render) http.HandlerFunc {
 		}
 
 		if isOffice { // Admin是单位类型
-DBInfo.
+			DBInfo.
 		} else { // Admin是组织类型
 
 		}
