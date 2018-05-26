@@ -39,7 +39,7 @@ func getTaskList(formatter *render.Render, isFinish bool) http.HandlerFunc {
 		}
 
 		// 获取任务列表
-		taskList, err := DBInfo.GetTaskList(false, isOffice, countsPerPage*(curPage-1), countsPerPage, adminID)
+		taskList, err := DBInfo.GetTaskList(adminID, countsPerPage, countsPerPage*(curPage-1), isFinish, isOffice)
 		if err != nil {
 			fmt.Println(err)
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
