@@ -20,8 +20,6 @@ type Place struct {
 	Lng  float64 `json:"place_lng" orm:"column(place_lng)"`
 }
 
-// func (t *Task) TableName() string { return "Tasks" }
-
 // AcMem 参与任务的组织、单位、个人
 type AcMem struct {
 	AcOrgIDs  []int `json:"accept_org_ids"`
@@ -64,7 +62,7 @@ type List struct {
 
 // Tasklist 任务列表
 type Tasklist struct {
-	ID           int     `json:"-" orm:"column(task_id)`
+	ID           int     `json:"-" orm:"column(task_id)"`
 	Title        string  `json:"title" orm:"column(title)"`
 	Launcher     string  `json:"launch_admin"`
 	AdminID      int     `json:"-" orm:"column(launch_admin_id)"`
