@@ -138,7 +138,17 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 // 获取所有下属组织及人员, /task/orgs [GET]
 func orgs(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		adminID, isOffice, err := getAdminAndType(w, r)
+		if err != nil {
+			return
+		}
 
+		orgInfo, err := DBInfo.GetOrgInfoAndMems(adminID, isOffice)
+		if err != nil {
+			fmt.Println(err)
+			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+		}
+		formatter.JSON(w, http.StatusOK, orgInfo)
 	}
 }
 
@@ -163,6 +173,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 }
 
 // getAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
+// 若出错，会对ResponseWriter进行写入
 func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
 	return 3, nil
 	formatter := render.New(render.Options{IndentJSON: true})
@@ -201,6 +212,7 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 }
 
 // getAdminAndType 输入token字符串, 返回管理员ID和类型(true: 单位, false: 组织)
+// 若出错，会对ResponseWriter进行写入
 func getAdminAndType(w http.ResponseWriter, r *http.Request) (adminID int, isOff bool, err error) {
 	formatter := render.New(render.Options{IndentJSON: true})
 

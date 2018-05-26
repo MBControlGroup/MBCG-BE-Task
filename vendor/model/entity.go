@@ -41,6 +41,26 @@ type Office struct {
 	LowerOffs []Office  `json:"lower_offices"`
 }
 
+// OrgInfo 获取下属组织及人员
+type OrgInfo struct {
+	TotalMems int       `json:"total_mems"`
+	Orgdetail OrgDetail `json:"detail"`
+}
+
+type OrgDetail struct {
+	// Orgs所属单位的名称
+	OfficeName   string      `json:"office_name"`
+	Orgs         []Org       `json:"orgs"`
+	LowerOffices []OrgDetail `json:"lower_offices"`
+}
+
+type Org struct {
+	ID          int       `json:"org_id"`
+	Name        string    `json:"name"`
+	Members     []Soldier `json:"members"`
+	LowerOrgIDs []int     `json:"lower_org_ids"`
+}
+
 // Soldier 用于所有JSON数据的传输
 type Soldier struct {
 	ID          int    `json:"soldier_id" orm:"column(soldier_id)"`
@@ -60,7 +80,7 @@ type List struct {
 	Tasks     []TaskInfo `json:"data"`
 }
 
-// Tasklist 用于任务列表、任务详情
+// TaskInfo 用于任务列表、任务详情
 type TaskInfo struct {
 	ID           int     `json:"-" orm:"column(task_id)"`
 	Title        string  `json:"title" orm:"column(title)"`
@@ -68,7 +88,7 @@ type TaskInfo struct {
 	AdminID      int     `json:"-" orm:"column(launch_admin_id)"`
 	LaunchTime   string  `json:"launch_datetime" orm:"column(launch_datetime)"`
 	GatherTime   string  `json:"gather_datetime,omitempty" orm:"column(gather_datetime)"`
-	FinishTime   string  `json:"finish_datetime" orm:"column(finish_datetime)"`
+	FinishTime   string  `json:"finish_datetime,omitempty" orm:"column(finish_datetime)"`
 	PlaceID      int     `json:"-" orm:"column(gather_place_id)"`
 	Place        string  `json:"gather_place"`
 	MemCount     int     `json:"mem_count" orm:"column(mem_count)"`
