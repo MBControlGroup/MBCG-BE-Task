@@ -271,11 +271,13 @@ response:
 		"gather_place"		:"新天地",		// 集合地点
 		"place_lat"		:39.071510,		// 集合地点纬度，不知前端需不需要
 		"place_lng"		:117.190091,		// 集合地点经度
+		"mem_count"		:30			// 目标征集人数
 		"status"		:"zj/jh/zx",		// 人员征集中,集合中,任务执行中
 		"detail"		:0.4,			// 若为zj,0.4, 就是人员征集了40%
-		"mem_count"		:30			// 目标征集人数
-		"is_launcher"	:true		// 是否为该任务的发起人. 若为true, 则有权限结束该任务
-									// 若为false, 则不能结束该任务(他可能是发起人的上级)
+		"is_launcher"		:true		// 是否为该任务的发起人. 若为true, 则有权限结束该任务
+						// 若为false, 则不能结束该任务(他可能是发起人的上级)
+						// 该项只有为true时才显示，为false默认不显示
+		// 若任务已结束，则不会显示最后的三项status, detail, is_launcher
 	}
 
 	307 Temporary Redirect
