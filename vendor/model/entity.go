@@ -57,17 +57,18 @@ type Soldier struct {
 type List struct {
 	PageCount int        `json:"total_pages"`
 	TaskCount int        `json:"total_tasks"`
-	Tasks     []Tasklist `json:"data"`
+	Tasks     []TaskInfo `json:"data"`
 }
 
-// Tasklist 任务列表
-type Tasklist struct {
+// Tasklist 用于任务列表、任务详情
+type TaskInfo struct {
 	ID           int     `json:"-" orm:"column(task_id)"`
 	Title        string  `json:"title" orm:"column(title)"`
 	Launcher     string  `json:"launch_admin"`
 	AdminID      int     `json:"-" orm:"column(launch_admin_id)"`
 	LaunchTime   string  `json:"launch_datetime" orm:"column(launch_datetime)"`
 	GatherTime   string  `json:"gather_datetime,omitempty" orm:"column(gather_datetime)"`
+	FinishTime   string  `json:"finish_datetime" orm:"column(finish_datetime)"`
 	PlaceID      int     `json:"-" orm:"column(gather_place_id)"`
 	Place        string  `json:"gather_place"`
 	MemCount     int     `json:"mem_count" orm:"column(mem_count)"`

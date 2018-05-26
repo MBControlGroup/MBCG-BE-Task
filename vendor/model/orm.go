@@ -356,7 +356,7 @@ func (db DBManager) getAdminIDsInAllLowerOfficesAndOrgs(officeIDs arrayInt, admi
 
 // GetTaskList 获取任务列表(执行中, 已完成). 区分单位/组织, 每页显示数目, 当前页
 func (db DBManager) GetTaskList(adminID, countsPerPage, offset int, isFinish, isOffice bool) (*List, error) {
-	tasklist := List{Tasks: make([]Tasklist, 0)}
+	tasklist := List{Tasks: make([]TaskInfo, 0)}
 	adminIDs := arrayInt{adminID}
 
 	// 获取Amin下属组织/单位的AdminID
@@ -397,8 +397,8 @@ func (db DBManager) getTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) i
 
 // getTasksFromAdminIDs 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
 // 获取“执行中”“已完成”Tasks所需信息的交集， 但不包括发起单位、组织， 集合地点名称的信息
-func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []Tasklist {
-	var tasks []Tasklist
+func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []TaskInfo {
+	var tasks []TaskInfo
 
 	o := orm.NewOrm()
 	rawSQL := "SELECT task_id, title, mem_count, launch_admin_id, launch_datetime, gather_place_id "
@@ -419,7 +419,7 @@ func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offse
 }
 
 // 根据[]Tasklist中的每个placeID获取placeName
-func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []Tasklist) {
+func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []TaskInfo) {
 	o := orm.NewOrm()
 	rawSQL := "SELECT place_name FROM Places WHERE place_id = ?"
 	for i := range tasks {
@@ -428,7 +428,7 @@ func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []Tasklist) {
 }
 
 // 根据AdminID写入其所在org/office名称
-func (db DBManager) writeOrgOfficeNamesFromAdminIDs(tasks []Tasklist) {
+func (db DBManager) writeOrgOfficeNamesFromAdminIDs(tasks []TaskInfo) {
 	rawSQL := ""
 	adminType := ""
 	var waitGroup sync.WaitGroup
@@ -459,8 +459,8 @@ func (db DBManager) writeOrgOfficeNamesFromAdminIDs(tasks []Tasklist) {
 }
 
 // 从AdminIDs获取他们发布的任务[]Tasklist(根据偏移量和所需数量), 他们发布任务的总数int
-func (db DBManager) getTasksAndCountsFromAdmin(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) ([]Tasklist, int) {
-	tasks := make([]Tasklist, 0)
+func (db DBManager) getTasksAndCountsFromAdmin(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) ([]TaskInfo, int) {
+	tasks := make([]TaskInfo, 0)
 	// 获取Tasks的数量
 	taskCount := db.getTaskCountFromAdminIDs(adminIDs, isFinish)
 	if taskCount > 0 {
@@ -501,7 +501,7 @@ func (db DBManager) getTasksAndCountsFromAdmin(adminIDs arrayInt, isFinish bool,
 }
 
 // 计算已完成任务的response_count, accept_count, check_count
-func (db DBManager) calTasksFinished(tasks []Tasklist) {
+func (db DBManager) calTasksFinished(tasks []TaskInfo) {
 	// waitGroup 等待下面所有goroutine执行完毕
 	var waitGroup sync.WaitGroup
 
@@ -520,7 +520,7 @@ func (db DBManager) calTasksFinished(tasks []Tasklist) {
 }
 
 // 计算进行中任务的状态, 状态详情
-func (db DBManager) calTasksStatus(tasks []Tasklist) {
+func (db DBManager) calTasksStatus(tasks []TaskInfo) {
 	// waitGroup 等待下面所有goroutine执行完毕
 	var waitGroup sync.WaitGroup
 
