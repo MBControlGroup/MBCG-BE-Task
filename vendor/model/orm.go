@@ -600,8 +600,16 @@ func (db DBManager) getLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
 }
 
 // GetTaskDetail 获取任务详情
-func (db DBManager) GetTaskDetail(taskID int) (*OrgInfo, error) {
-	return &OrgInfo{}, nil
+func (db DBManager) GetTaskDetail(taskID int) (*TaskInfo, error) {
+	task := TaskInfo{}
+
+}
+
+func (db DBManager) getTaskDetailFromDB(taskID int) *TaskInfo {
+	o := orm.NewOrm()
+	rawSQL := "SELECT task_id, title, launch_datetime, gather_datetime, finish_datetime, gather_place_id"
+	rawSQL += ", mem_count, "
+	o.Raw()
 }
 
 // GetOrgInfoAndMems 获取下属组织及成员

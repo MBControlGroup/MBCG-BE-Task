@@ -90,11 +90,14 @@ type TaskInfo struct {
 	GatherTime   string  `json:"gather_datetime,omitempty" orm:"column(gather_datetime)"`
 	FinishTime   string  `json:"finish_datetime,omitempty" orm:"column(finish_datetime)"`
 	PlaceID      int     `json:"-" orm:"column(gather_place_id)"`
-	Place        string  `json:"gather_place"`
+	Place        string  `json:"gather_place" orm:"column(place_name)"`
+	PlaceLat     float64 `json:"place_lat" orm:"column(place_lat)"`
+	PlaceLng     float64 `json:"place_lng" orm:"column(place_lng)"`
 	MemCount     int     `json:"mem_count" orm:"column(mem_count)"`
 	Status       string  `json:"status,omitempty"`
 	StatusDetail float32 `json:"detail,omitempty"`
 	RespCount    int     `json:"response_count,omitempty"`
 	AcCount      int     `json:"accept_count,omitempty"`
 	CheckCount   int     `json:"check_count,omitempty"`
+	IsLauncher   bool    `json:"is_launcher,omitempty"`
 }
