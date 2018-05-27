@@ -6,7 +6,7 @@
 
 [Apiary](https://task25.docs.apiary.io/#)
 
-**注意：以下所有数据的值为0，false时，默认不显示该项数据，除非有特别注明**
+**注意：以下所有数据的值为0（int, float类型），false（bool类型），""（string类型）时，默认不显示该项数据，除非有特别注明**
 
 ## 任务
 
