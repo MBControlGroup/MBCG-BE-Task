@@ -196,6 +196,7 @@ response:
 		"total_tasks":5,	// 总任务数(执行中)
 		"data":[
 			{
+				"task_id"		:123456,		// 任务ID
 				"title"			:"消防演习",		// 任务主题
 				"launch_admin"		:"海珠区一排",		// 发起单位/组织
 				"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
@@ -230,6 +231,7 @@ response:
 		"total_tasks":5,	// 总任务数(已完成)
 		"data":[
 			{
+				"task_id"		:123456,		// 任务ID
 				"title"			:"消防演习",		// 任务主题
 				"launch_admin"		:"海珠区一排",		// 发起单位/组织
 				"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
