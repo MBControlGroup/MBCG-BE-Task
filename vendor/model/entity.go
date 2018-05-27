@@ -82,7 +82,7 @@ type List struct {
 
 // TaskInfo 用于任务列表、任务详情
 type TaskInfo struct {
-	ID           int     `json:"-" orm:"column(task_id)"`
+	ID           int     `json:"task_id" orm:"column(task_id)"`
 	Title        string  `json:"title" orm:"column(title)"`
 	Launcher     string  `json:"launch_admin"`
 	AdminID      int     `json:"-" orm:"column(launch_admin_id)"`
@@ -91,8 +91,8 @@ type TaskInfo struct {
 	FinishTime   string  `json:"finish_datetime,omitempty" orm:"column(finish_datetime)"`
 	PlaceID      int     `json:"-" orm:"column(gather_place_id)"`
 	Place        string  `json:"gather_place" orm:"column(place_name)"`
-	PlaceLat     float64 `json:"place_lat" orm:"column(place_lat)"`
-	PlaceLng     float64 `json:"place_lng" orm:"column(place_lng)"`
+	PlaceLat     float64 `json:"place_lat,omitempty" orm:"column(place_lat)"`
+	PlaceLng     float64 `json:"place_lng,omitempty" orm:"column(place_lng)"`
 	MemCount     int     `json:"mem_count" orm:"column(mem_count)"`
 	Status       string  `json:"status,omitempty"`
 	StatusDetail float32 `json:"detail,omitempty"`

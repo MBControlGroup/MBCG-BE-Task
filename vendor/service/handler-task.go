@@ -175,7 +175,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 // getAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
 // 若出错，会对ResponseWriter进行写入
 func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
-	return 3, nil
+	return 4, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	// 获取cookie中的token

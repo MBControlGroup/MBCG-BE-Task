@@ -614,14 +614,16 @@ func (db DBManager) GetTaskDetail(taskID int, watchAdminID int) (*TaskInfo, erro
 	db.writePlaceNamesFromPlaceIDs(task, true)
 	// 任务的launcher（发起任务的组织/单位名称）
 	db.writeOrgOfficeNamesFromAdminIDs(task)
-	// 任务的status, status_detail
 	finishTime, _ := time.Parse("2006-01-02 15:04:05", task[0].FinishTime)
-	if finishTime.Unix() < time.Now().Unix() {
+	// 如果任务未完成
+	if finishTime.Unix() > time.Now().Unix() {
+		// 任务的status, status_detail
 		db.calTasksStatus(task)
-	}
-	// 任务的is_launcher，即判断查看该任务的Admin是否为任务发起者
-	if watchAdminID == task[0].AdminID {
-		task[0].IsLauncher = true
+		// 任务的is_launcher，即判断查看该任务的Admin是否为任务发起者
+		if watchAdminID == task[0].AdminID {
+			task[0].IsLauncher = true
+		}
+
 	}
 	return &task[0], nil
 }
