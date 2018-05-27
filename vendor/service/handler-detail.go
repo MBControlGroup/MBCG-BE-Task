@@ -2,16 +2,26 @@ package service
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )
 
 // 查看任务详情, /task/detail/{taskID} [GET]
 func detail(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		/*reqData := mux.Vars(r)
+		adminID, err := getAdminID(w, r)
+		if err != nil {
+			return
+		}
+
+		reqData := mux.Vars(r)
 		taskIDStr := reqData["taskID"]
-		taskID, _ := strconv.Atoi(taskIDStr)*/
+		taskID, _ := strconv.Atoi(taskIDStr)
+
+		taskInfo, _ := DBInfo.GetTaskDetail(taskID, adminID)
+		formatter.JSON(w, http.StatusOK, taskInfo)
 	}
 }
 

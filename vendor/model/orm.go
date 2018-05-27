@@ -419,11 +419,17 @@ func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offse
 }
 
 // 根据[]Tasklist中的每个placeID获取placeName
-func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []TaskInfo) {
+func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []TaskInfo, needLatLng bool) {
 	o := orm.NewOrm()
-	rawSQL := "SELECT place_name FROM Places WHERE place_id = ?"
+	rawSQL := ""
+	if needLatLng {
+		rawSQL = "SELECT place_name, place_lat, place_lng "
+	} else {
+		rawSQL = "SELECT place_name "
+	}
+	rawSQL += "FROM Places WHERE place_id = ?"
 	for i := range tasks {
-		o.Raw(rawSQL, tasks[i].PlaceID).QueryRow(&(tasks[i].Place))
+		o.Raw(rawSQL, tasks[i].PlaceID).QueryRow(&(tasks[i]))
 	}
 }
 
@@ -466,7 +472,7 @@ func (db DBManager) getTasksAndCountsFromAdmin(adminIDs arrayInt, isFinish bool,
 		waitGroup.Add(1)
 		go func() {
 			defer waitGroup.Done()
-			db.writePlaceNamesFromPlaceIDs(tasks)
+			db.writePlaceNamesFromPlaceIDs(tasks, false)
 		}()
 
 		// 根据AdminID获取所在org/office名称
@@ -600,16 +606,35 @@ func (db DBManager) getLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
 }
 
 // GetTaskDetail 获取任务详情
-func (db DBManager) GetTaskDetail(taskID int) (*TaskInfo, error) {
-	task := TaskInfo{}
-
+func (db DBManager) GetTaskDetail(taskID int, watchAdminID int) (*TaskInfo, error) {
+	task := make([]TaskInfo, 1)
+	// 任务title, launch_datetime, gather_datetime等
+	task[0] = db.getTaskDetailFromDB(taskID)
+	// 任务的gather_place（地点名称）
+	db.writePlaceNamesFromPlaceIDs(task, true)
+	// 任务的launcher（发起任务的组织/单位名称）
+	db.writeOrgOfficeNamesFromAdminIDs(task)
+	// 任务的status, status_detail
+	finishTime, _ := time.Parse("2006-01-02 15:04:05", task[0].FinishTime)
+	if finishTime.Unix() < time.Now().Unix() {
+		db.calTasksStatus(task)
+	}
+	// 任务的is_launcher，即判断查看该任务的Admin是否为任务发起者
+	if watchAdminID == task[0].AdminID {
+		task[0].IsLauncher = true
+	}
+	return &task[0], nil
 }
 
-func (db DBManager) getTaskDetailFromDB(taskID int) *TaskInfo {
+// 根据TaskID从数据库选出该任务的详情，但不包括地点名称、经纬度等
+func (db DBManager) getTaskDetailFromDB(taskID int) TaskInfo {
+	task := TaskInfo{}
 	o := orm.NewOrm()
-	rawSQL := "SELECT task_id, title, launch_datetime, gather_datetime, finish_datetime, gather_place_id"
-	rawSQL += ", mem_count, "
-	o.Raw()
+	rawSQL := "SELECT task_id, title, launch_admin_id, launch_datetime, gather_datetime,"
+	rawSQL += " finish_datetime, gather_place_id, mem_count "
+	rawSQL += "FROM Tasks WHERE task_id = ?"
+	o.Raw(rawSQL, taskID).QueryRow(&task)
+	return task
 }
 
 // GetOrgInfoAndMems 获取下属组织及成员
