@@ -6,6 +6,8 @@
 
 [Apiary](https://task25.docs.apiary.io/#)
 
+**注意：以下所有数据的值为0，false时，默认不显示该项数据，除非有特别注明**
+
 ## 任务
 
 ### 发布任务 [/task] [POST]
