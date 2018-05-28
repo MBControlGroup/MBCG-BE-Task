@@ -598,7 +598,7 @@ func (db DBManager) getAdminIDsFromOrgs(orgIDs arrayInt) []int {
 
 // 从OrgIDs获取下属OrgIDs
 func (db DBManager) getLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
-	var lowerOrgIDs []int
+	lowerOrgIDs := make([]int, 0)
 	o := orm.NewOrm()
 	rawSQL := "SELECT lower_org_id FROM OrgRelationships WHERE higher_org_id IN " + fmt.Sprint(orgIDs)
 	o.Raw(rawSQL).QueryRows(&lowerOrgIDs)
@@ -645,7 +645,13 @@ func (db DBManager) GetOrgInfoAndMems(adminID int, isOffice bool) (*OrgInfo, err
 	orgInfo := OrgInfo{}
 
 	if isOffice { // 单位
-
+		// 获取OfficeID
+		officeID := db.getOfficeIDFromAdminID(adminID)
+		// 获取OrgDetail
+		orgDetail, uniqueSoldiers := db.getOrgDetail(officeID)
+		// 获取Total Members
+		orgInfo.TotalMems = len(uniqueSoldiers)
+		orgInfo.Orgdetail = orgDetail
 	} else { // 组织
 		// 通过AdminID获取其所在Office的名称
 		orgDetail.OfficeName = db.getOfficeOrgNameFromAdmin(adminID, false)
@@ -661,6 +667,113 @@ func (db DBManager) GetOrgInfoAndMems(adminID int, isOffice bool) (*OrgInfo, err
 	return &orgInfo, nil
 }
 
+// 根据OfficeID获取OrgInfo.OrgDetail
+func (db DBManager) getOrgDetail(officeID int) (OrgDetail, map[int]bool) {
+	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
+	var waitGroup sync.WaitGroup
+	orgDetail := OrgDetail{Orgs: make([]Org, 0), LowerOffices: make([]OrgDetail, 0)}
+	// 获取officeName
+	orgDetail.OfficeName = db.getOfficeName(officeID)
+	// 获取Orgs，Orgs的uniqueSoldierIDs
+	orgIDs := db.getOrgIDsFromOffices(arrayInt{officeID})
+	if len(orgIDs) > 0 {
+		orgs, subUniqueSoldrs := db.getOrgs(orgIDs)
+		orgDetail.Orgs = orgs
+		// 插入Unique SoldierIDs
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+			uniqueSoldiers.lock.Lock()
+			defer uniqueSoldiers.lock.Unlock()
+
+			for soldierID := range subUniqueSoldrs {
+				uniqueSoldiers.uniqueSoldrIDs[soldierID] = true
+			}
+		}()
+	}
+	// 获取LowerOffices
+	lowerOfficeIDs := db.getLowerOfficeIDsFromOffices(arrayInt{officeID})
+	if len(lowerOfficeIDs) > 0 {
+		var lowerOfficesLock sync.Mutex
+		for _, lowerOfficeID := range lowerOfficeIDs {
+			waitGroup.Add(1)
+			go func(officeID int) {
+				defer waitGroup.Done()
+
+				// 根据LowerOfficeIDs获取对应OrgDetails（OrgDetail.LowerOffices）
+				lowerOrgDetail, subUniqueSoldrs := db.getOrgDetail(officeID)
+				// 插入lowerOffices
+				waitGroup.Add(1)
+				go func() {
+					defer waitGroup.Done()
+					lowerOfficesLock.Lock()
+					defer lowerOfficesLock.Unlock()
+
+					orgDetail.LowerOffices = append(orgDetail.LowerOffices, lowerOrgDetail)
+				}()
+				// 插入UniqueSoldiers
+				waitGroup.Add(1)
+				go func() {
+					defer waitGroup.Done()
+					uniqueSoldiers.lock.Lock()
+					defer uniqueSoldiers.lock.Unlock()
+
+					for soldierID := range subUniqueSoldrs {
+						uniqueSoldiers.uniqueSoldrIDs[soldierID] = true
+					}
+				}()
+			}(lowerOfficeID)
+		}
+	}
+	waitGroup.Wait()
+	return orgDetail, uniqueSoldiers.uniqueSoldrIDs
+}
+
+type safeMap struct {
+	lock           sync.Mutex
+	uniqueSoldrIDs map[int]bool
+}
+
+// 通过OrgIDs获取Orgs（name, members, lowerOrgIDs）
+func (db DBManager) getOrgs(orgIDs []int) ([]Org, map[int]bool) {
+	orgs := make([]Org, len(orgIDs))
+	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
+	var waitGroup sync.WaitGroup
+
+	for i := range orgs {
+		waitGroup.Add(1)
+		go func(i int) {
+			defer waitGroup.Done()
+
+			orgs[i] = db.getOrg(orgIDs[i])
+			uniqueSoldiers.lock.Lock()
+			for _, soldier := range orgs[i].Members {
+				uniqueSoldiers.uniqueSoldrIDs[soldier.ID] = true
+			}
+			uniqueSoldiers.lock.Unlock()
+		}(i)
+	}
+	waitGroup.Wait()
+	return orgs, uniqueSoldiers.uniqueSoldrIDs
+}
+
+// 通过OfficeID获取Office名称
+func (db DBManager) getOfficeName(officeID int) string {
+	officeName := ""
+	o := orm.NewOrm()
+	o.Raw("SELECT name FROM Offices WHERE office_id = ?", officeID).QueryRow(&officeName)
+	return officeName
+}
+
+// 通过OrgID获取Org（name, 成员, 下属OrgIDs）
+func (db DBManager) getOrg(orgID int) Org {
+	org := Org{ID: orgID}
+	org.Name = db.getOrgName(orgID)
+	org.Members = db.getOrgMems(orgID)
+	org.LowerOrgIDs = db.getLowerOrgIDsFromOrgIDs(arrayInt{orgID})
+	return org
+}
+
 // 通过OrgID获取组织及其所有下属的名称、成员
 // 返回该组织及所有下属组织（的信息），成员数量（成员不重复）
 func (db DBManager) getOrgAndAllLowerDetails(orgID int) ([]Org, int) {
@@ -669,15 +782,12 @@ func (db DBManager) getOrgAndAllLowerDetails(orgID int) ([]Org, int) {
 	// 记录该组织及其下属组织的成员数量，人员不重复
 	uniqueSoldrIDs := make(map[int]bool)
 
-	// 使用queue找到orgID的所有下属Org，及其detail
+	// 使用queue找到orgID的所有下属Org，及其name, members, lowerOrgIDs
 	queue := make([]int, 1)
 	queue[0] = orgID
 	for len(queue) != 0 {
 		orgID := queue[0]
-		org := Org{ID: orgID}
-		org.Name = db.getOrgName(orgID)
-		org.Members = db.getOrgMems(orgID)
-		org.LowerOrgIDs = db.getLowerOrgIDsFromOrgIDs(arrayInt{orgID})
+		org := db.getOrg(orgID)
 		orgs = append(orgs, org)
 
 		queue = append(queue, org.LowerOrgIDs...)
