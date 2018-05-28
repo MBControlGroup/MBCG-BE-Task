@@ -3,10 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
-	"sync"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -75,11 +72,11 @@ func (db DBManager) insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *
 
 	// 关联 常用地点 与 组织/单位
 	if isOffice { // 插入OfficePlaces
-		officeID := db.getOfficeIDFromAdminID(task.AdminID) // 通过adminID获取officeID
+		officeID := db.GetOfficeIDFromAdminID(task.AdminID) // 通过adminID获取officeID
 		rawSQL = "INSERT INTO OfficePlaces (office_id, place_id) VALUES (?, ?)"
 		(*o).Raw(rawSQL, officeID, placeID).Exec()
 	} else { // 插入OrgPlaces
-		orgID := db.getOrgIDFromAdminID(task.AdminID) // 通过adminID获取orgID
+		orgID := db.GetOrgIDFromAdminID(task.AdminID) // 通过adminID获取orgID
 		rawSQL = "INSERT INTO OrgPlaces (org_id, place_id) VALUES (?, ?)"
 		(*o).Raw(rawSQL, orgID, placeID).Exec()
 	}
@@ -87,14 +84,15 @@ func (db DBManager) insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *
 	return int(placeID), nil
 }
 
-func (db DBManager) getOrgIDFromAdminID(adminID int) int {
+func (db DBManager) GetOrgIDFromAdminID(adminID int) int {
 	var orgID int
 	o := orm.NewOrm()
 	o.Raw("SELECT org_id FROM OrgAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&orgID)
 	return orgID
 }
 
-func (db DBManager) getOfficeIDFromAdminID(adminID int) int {
+// GetOfficeIDFromAdminID 通过AdminID获取其所在OfficeID
+func (db DBManager) GetOfficeIDFromAdminID(adminID int) int {
 	var officeID int
 	o := orm.NewOrm()
 	o.Raw("SELECT office_id FROM OfficeAdminRelationships WHERE admin_id = ?", adminID).QueryRow(&officeID)
@@ -239,9 +237,9 @@ func (db DBManager) EndTask(taskID, adminID int) error {
 	return nil
 }
 
-// 根据AdminID与Admin类型isOffice, 查找Admin对应的组织/单位的常用地点.
+// GetCommonPlaces 根据AdminID与Admin类型isOffice, 查找Admin对应的组织/单位的常用地点.
 // 查找顺序: admin_id -> org_id/office_id -> place_id -> all places
-func (db DBManager) getCommonPlaces(adminID int, isOffice bool) []Place {
+func (db DBManager) GetCommonPlaces(adminID int, isOffice bool) []Place {
 	places := make([]Place, 0)
 	o := orm.NewOrm()
 	rawSQL := "SELECT * FROM Places "
@@ -262,29 +260,8 @@ func (db DBManager) getCommonPlaces(adminID int, isOffice bool) []Place {
 	return places
 }
 
-// GetCommonPlaces 根据AdminID与Admin类型isOffice, 查找Admin对应的组织/单位的常用地点.
-func (db DBManager) GetCommonPlaces(adminID int, isOffice bool) ([]Place, error) {
-	places := db.getCommonPlaces(adminID, isOffice)
-	return places, nil
-}
-
-// GetOfficeInfoAndMems 根据AdminID获取单位、下属单位及成员
-func (db DBManager) GetOfficeInfoAndMems(adminID int) (*OfficeInfo, error) {
-	officeID := db.getOfficeIDFromAdminID(adminID)
-
-	var officeInfo OfficeInfo
-	officeDetail, memCounts, err := db.getOfficeDetail(officeID)
-	if err != nil {
-		return nil, err
-	}
-
-	officeInfo.OfficeDetail = officeDetail
-	officeInfo.TotalMems = memCounts
-	return &officeInfo, err
-}
-
 // 通过OfficeID获取成员
-func (db DBManager) getOfficeMems(officeID int) ([]Soldier, int64) {
+func (db DBManager) GetOfficeMems(officeID int) ([]Soldier, int64) {
 	soldiers := make([]Soldier, 0)
 	o := orm.NewOrm()
 	rawSQL := "SELECT soldier_id, name FROM Soldiers WHERE serve_office_id = ?"
@@ -292,33 +269,8 @@ func (db DBManager) getOfficeMems(officeID int) ([]Soldier, int64) {
 	return soldiers, memCounts
 }
 
-// 递归, 获取下属单位、人员及人数
-func (db DBManager) getOfficeDetail(officeID int) (Office, int, error) {
-	office := Office{ID: officeID, LowerOffs: make([]Office, 0)}
-
-	// 根据OfficeID获取单位名称
-	office.Name = db.getOfficeName(officeID)
-	// 根据OfficeID获取所含民兵及人数
-	soldiers, memCounts := db.getOfficeMems(officeID)
-	office.Members = soldiers
-
-	// 获取该单位的下属单位
-	lowerOffIDs := db.getLowerOfficeIDsFromOffices(arrayInt{officeID})
-	for _, lowerOffID := range lowerOffIDs {
-		lowerOffice, counts, err := db.getOfficeDetail(lowerOffID)
-		if err != nil {
-			return office, 0, err
-		}
-
-		office.LowerOffs = append(office.LowerOffs, lowerOffice)
-		memCounts += int64(counts)
-	}
-
-	return office, int(memCounts), nil
-}
-
 // 获取从属于该Office的Organizations ID
-func (db DBManager) getOrgIDsFromOffices(officeIDs arrayInt) arrayInt {
+func (db DBManager) GetOrgIDsFromOffices(officeIDs arrayInt) arrayInt {
 	var orgIDs arrayInt
 	o := orm.NewOrm()
 	rawSQL := "SELECT org_id FROM Organizations WHERE serve_office_id IN " + fmt.Sprint(officeIDs)
@@ -327,7 +279,7 @@ func (db DBManager) getOrgIDsFromOffices(officeIDs arrayInt) arrayInt {
 }
 
 // 获取这些单位的下属单位
-func (db DBManager) getLowerOfficeIDsFromOffices(officeIDs arrayInt) arrayInt {
+func (db DBManager) GetLowerOfficeIDsFromOffices(officeIDs arrayInt) arrayInt {
 	var lowerOfficeIDs arrayInt
 	o := orm.NewOrm()
 	rawSQL := "SELECT lower_office_id FROM OfficeRelationships WHERE higher_office_id IN " + fmt.Sprint(officeIDs)
@@ -336,7 +288,7 @@ func (db DBManager) getLowerOfficeIDsFromOffices(officeIDs arrayInt) arrayInt {
 }
 
 // 通过OfficeIDs查找出其对应的AdminIDs
-func (db DBManager) getAdminIDsFromOffices(officeIDs arrayInt) []int {
+func (db DBManager) GetAdminIDsFromOffices(officeIDs arrayInt) []int {
 	var adminIDs []int
 	o := orm.NewOrm()
 	rawSQL := "SELECT admin_id FROM OfficeAdminRelationships WHERE office_id IN " + fmt.Sprint(officeIDs)
@@ -344,55 +296,8 @@ func (db DBManager) getAdminIDsFromOffices(officeIDs arrayInt) []int {
 	return adminIDs
 }
 
-// 从单位获取其下属单位和组织(除去其本身和其所含组织)的AdminIDs
-// 递归
-func (db DBManager) getAdminIDsInAllLowerOfficesAndOrgs(officeIDs arrayInt, adminIDs []int) {
-	// 获取目前单位的所有下属单位、AdminIDs
-	lowerOffIDs := db.getLowerOfficeIDsFromOffices(officeIDs)
-
-	if len(lowerOffIDs) > 0 {
-		adminIDsFromOffices := db.getAdminIDsFromOffices(lowerOffIDs)
-		adminIDs = append(adminIDs, adminIDsFromOffices...)
-
-		// 从所有下属单位获取他们所含的组织、AdminIDs
-		lowerOrgIDs := db.getOrgIDsFromOffices(lowerOffIDs)
-		if len(lowerOrgIDs) > 0 {
-			adminIDsFromOrgs := db.getAdminIDsFromOrgs(lowerOrgIDs)
-			adminIDs = append(adminIDs, adminIDsFromOrgs...)
-		}
-		db.getAdminIDsInAllLowerOfficesAndOrgs(lowerOffIDs, adminIDs)
-	}
-}
-
-// GetTaskList 获取任务列表(执行中, 已完成). 区分单位/组织, 每页显示数目, 当前页
-func (db DBManager) GetTaskList(adminID, countsPerPage, offset int, isFinish, isOffice bool) (*List, error) {
-	tasklist := List{Tasks: make([]TaskInfo, 0)}
-	adminIDs := arrayInt{adminID}
-
-	// 获取Amin下属组织/单位的AdminID
-	if isOffice { // Admin类型为单位
-		officeID := db.getOfficeIDFromAdminID(adminID)
-		orgIDs := db.getOrgIDsFromOffices(arrayInt{officeID})
-		if len(orgIDs) > 0 {
-			subAdminIDs := db.getAdminIDsFromOrgs(orgIDs)
-			adminIDs = append(adminIDs, subAdminIDs...)
-		}
-		db.getAdminIDsInAllLowerOfficesAndOrgs(arrayInt{officeID}, adminIDs)
-	} else { // Admin类型为组织
-		orgID := db.getOrgIDFromAdminID(adminID)
-		db.getAdminIDsInAllLowerOrgs(arrayInt{orgID}, adminIDs)
-	}
-	// 从AdminIDs获取Tasks和Tasks总数
-	tasks, taskCount := db.getTasksAndCountsFromAdmin(adminIDs, isFinish, offset, countsPerPage)
-
-	tasklist.TaskCount = taskCount
-	tasklist.PageCount = int(math.Ceil(float64(taskCount) / float64(countsPerPage)))
-	tasklist.Tasks = tasks
-	return &tasklist, nil
-}
-
 // 通过AdminIDs获取他们发布过的任务数量, 分类为"执行中"和"已完成"
-func (db DBManager) getTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) int {
+func (db DBManager) GetTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) int {
 	var taskCount int
 	o := orm.NewOrm()
 	rawSQL := "SELECT COUNT(*) FROM Tasks WHERE launch_admin_id IN " + fmt.Sprint(adminIDs)
@@ -407,7 +312,7 @@ func (db DBManager) getTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) i
 
 // getTasksFromAdminIDs 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
 // 获取“执行中”“已完成”Tasks所需信息的交集， 但不包括发起单位、组织， 集合地点名称的信息
-func (db DBManager) getTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []TaskInfo {
+func (db DBManager) GetTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []TaskInfo {
 	var tasks []TaskInfo
 
 	o := orm.NewOrm()
@@ -445,124 +350,14 @@ func (db DBManager) writePlaceNamesFromPlaceIDs(tasks []TaskInfo, needLatLng boo
 	}
 }
 
-// 根据AdminID写入其所在org/office名称
-func (db DBManager) writeOrgOfficeNamesFromAdminIDs(tasks []TaskInfo) {
-	var waitGroup sync.WaitGroup
-
-	for i := range tasks {
-		waitGroup.Add(1)
-
-		go func(i int) {
-			defer waitGroup.Done()
-
-			// 根据AdminID获取Admin类型
-			isOffice, _ := db.GetAdminType(tasks[i].AdminID)
-
-			// 根据AdminID、Admin类型获取所在组织/单位名称
-			if isOffice {
-				tasks[i].Launcher = db.getOfficeOrgNameFromAdmin(tasks[i].AdminID, true)
-			} else {
-				tasks[i].Launcher = db.getOfficeOrgNameFromAdmin(tasks[i].AdminID, false)
-			}
-		}(i)
-	}
-	waitGroup.Wait()
-}
-
-// 从AdminIDs获取他们发布的任务[]Tasklist(根据偏移量和所需数量), 他们发布任务的总数int
-func (db DBManager) getTasksAndCountsFromAdmin(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) ([]TaskInfo, int) {
-	tasks := make([]TaskInfo, 0)
-	// 获取Tasks的数量
-	taskCount := db.getTaskCountFromAdminIDs(adminIDs, isFinish)
-	if taskCount > 0 {
-		var waitGroup sync.WaitGroup
-
-		// 获取所需Tasks
-		tasks = db.getTasksFromAdminIDs(adminIDs, isFinish, offset, countsPerPage)
-
-		// 根据AdminID获取所在org/office名称
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
-			db.writeOrgOfficeNamesFromAdminIDs(tasks)
-		}()
-
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
-
-			if !isFinish { // 执行中任务， 计算status, detail信息
-				db.calTasksStatus(tasks)
-			} else { // 已完成任务, 计算response_count, accept_count, check_count信息
-				db.calTasksFinished(tasks)
-			}
-		}()
-		waitGroup.Wait()
-	}
-	return tasks, taskCount
-}
-
-// 计算已完成任务的response_count, accept_count, check_count
-func (db DBManager) calTasksFinished(tasks []TaskInfo) {
-	// waitGroup 等待下面所有goroutine执行完毕
-	var waitGroup sync.WaitGroup
-
-	for i := range tasks {
-		waitGroup.Add(1)
-		go func(i int) {
-			defer waitGroup.Done()
-			tasks[i].AcCount = db.getAcceptCountsFromTask(tasks[i].ID)
-			tasks[i].CheckCount = db.getCheckCountsFromTask(tasks[i].ID)
-			refuseCount := db.getRefuseCountsFromTask(tasks[i].ID)
-			tasks[i].RespCount = tasks[i].AcCount + refuseCount
-		}(i)
-	}
-
-	waitGroup.Wait()
-}
-
-// 计算进行中任务的状态, 状态详情
-func (db DBManager) calTasksStatus(tasks []TaskInfo) {
-	// waitGroup 等待下面所有goroutine执行完毕
-	var waitGroup sync.WaitGroup
-
-	for i := range tasks {
-		waitGroup.Add(1)
-
-		go func(i int) {
-			defer waitGroup.Done()
-			// 获取该任务的接受人数
-			acceptCount := db.getAcceptCountsFromTask(tasks[i].ID)
-			// 把该任务的gather_time转为time.Time
-			gatherTime, _ := time.Parse("2006-01-02 15:04:05", tasks[i].GatherTime)
-
-			// 判断任务的状态, 征集、集合、执行
-			if gatherTime.Unix() <= time.Now().Unix() { // 执行中,已经过了集合时间, 即 集合时间 < NOW()
-				tasks[i].Status = "zx"
-			} else { // 可知以下情况都是 还未到集合时间, 即 集合时间 > NOW()
-				if acceptCount < tasks[i].MemCount { // 征集中"zj", 接受人数 < 目标人数 && 集合时间 > NOW()
-					tasks[i].Status = "zj"
-					tasks[i].StatusDetail = float32(acceptCount) / float32(tasks[i].MemCount)
-				} else { // 集合中, 接受人数 > 目标人数
-					tasks[i].Status = "jh"
-					checkCount := db.getCheckCountsFromTask(tasks[i].ID)
-					tasks[i].StatusDetail = float32(checkCount) / float32(acceptCount)
-				}
-			}
-		}(i)
-	}
-
-	waitGroup.Wait()
-}
-
-func (db DBManager) getCheckCountsFromTask(taskID int) int {
+func (db DBManager) GetCheckCountsFromTask(taskID int) int {
 	var count int
 	o := orm.NewOrm()
 	o.Raw("SELECT COUNT(*) FROM TaskCheckNames WHERE check_task_id = ?", taskID).QueryRow(&count)
 	return count
 }
 
-func (db DBManager) getAcceptCountsFromTask(taskID int) int {
+func (db DBManager) GetAcceptCountsFromTask(taskID int) int {
 	var count int
 	o := orm.NewOrm()
 	rawSQL := "SELECT COUNT(*) FROM GatherNotifications WHERE gather_task_id = ? AND read_status = 'AC'"
@@ -570,7 +365,7 @@ func (db DBManager) getAcceptCountsFromTask(taskID int) int {
 	return count
 }
 
-func (db DBManager) getRefuseCountsFromTask(taskID int) int {
+func (db DBManager) GetRefuseCountsFromTask(taskID int) int {
 	var count int
 	o := orm.NewOrm()
 	rawSQL := "SELECT COUNT(*) FROM GatherNotifications WHERE read_status = 'RF' AND gather_task_id = ?"
@@ -578,22 +373,8 @@ func (db DBManager) getRefuseCountsFromTask(taskID int) int {
 	return count
 }
 
-// 给定highOrgIDs, 获取其所有下属(除去其本身)组织的AdminIDs
-// 对组织的遍历, BFS
-func (db DBManager) getAdminIDsInAllLowerOrgs(highOrgIDs arrayInt, adminIDs []int) {
-	// 从该OrgID获取下属OrgIDs
-	lowerOrgIDs := db.getLowerOrgIDsFromOrgIDs(highOrgIDs)
-	if len(lowerOrgIDs) > 0 {
-		// 从下属Organizations获取所有AdminIDs
-		subAdminIDs := db.getAdminIDsFromOrgs(lowerOrgIDs)
-		adminIDs = append(adminIDs, subAdminIDs...)
-		// 从下属OrgIDs获取所有AdminIDs
-		db.getAdminIDsInAllLowerOrgs(lowerOrgIDs, adminIDs)
-	}
-}
-
 // 从OrgIDs获取其所有AdminIDs
-func (db DBManager) getAdminIDsFromOrgs(orgIDs arrayInt) []int {
+func (db DBManager) GetAdminIDsFromOrgs(orgIDs arrayInt) []int {
 	var adminIDs []int
 	o := orm.NewOrm()
 	rawSQL := "SELECT admin_id FROM OrgAdminRelationships WHERE org_id IN " + fmt.Sprint(orgIDs)
@@ -602,7 +383,7 @@ func (db DBManager) getAdminIDsFromOrgs(orgIDs arrayInt) []int {
 }
 
 // 从OrgIDs获取下属OrgIDs
-func (db DBManager) getLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
+func (db DBManager) GetLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
 	lowerOrgIDs := make([]int, 0)
 	o := orm.NewOrm()
 	rawSQL := "SELECT lower_org_id FROM OrgRelationships WHERE higher_org_id IN " + fmt.Sprint(orgIDs)
@@ -610,28 +391,8 @@ func (db DBManager) getLowerOrgIDsFromOrgIDs(orgIDs arrayInt) []int {
 	return lowerOrgIDs
 }
 
-// GetTaskDetail 获取任务详情
-func (db DBManager) GetTaskDetail(taskID int, watchAdminID int) (*TaskInfo, error) {
-	task := make([]TaskInfo, 1)
-	// 任务title, launch_datetime, gather_datetime, place_name等
-	task[0] = db.getTaskDetailFromDB(taskID)
-	// 任务的launcher（发起任务的组织/单位名称）
-	db.writeOrgOfficeNamesFromAdminIDs(task)
-	finishTime, _ := time.Parse("2006-01-02 15:04:05", task[0].FinishTime)
-	// 如果任务未完成
-	if finishTime.Unix() > time.Now().Unix() {
-		// 任务的status, status_detail
-		db.calTasksStatus(task)
-		// 任务的is_launcher，即判断查看该任务的Admin是否为任务发起者
-		if watchAdminID == task[0].AdminID {
-			task[0].IsLauncher = true
-		}
-	}
-	return &task[0], nil
-}
-
 // 根据TaskID从数据库选出该任务的详情，但不包括发起单位、组织
-func (db DBManager) getTaskDetailFromDB(taskID int) TaskInfo {
+func (db DBManager) GetTaskDetailFromDB(taskID int) TaskInfo {
 	task := TaskInfo{}
 	o := orm.NewOrm()
 	rawSQL := "SELECT t.task_id task_id, t.title title, t.launch_admin_id launch_admin_id, "
@@ -644,199 +405,16 @@ func (db DBManager) getTaskDetailFromDB(taskID int) TaskInfo {
 	return task
 }
 
-// GetOrgInfoAndMems 获取下属组织及成员
-func (db DBManager) GetOrgInfoAndMems(adminID int, isOffice bool) (*OrgInfo, error) {
-	orgDetail := OrgDetail{Orgs: make([]Org, 0), LowerOffices: make([]OrgDetail, 0)}
-	orgInfo := OrgInfo{}
-
-	if isOffice { // 单位
-		// 获取OfficeID
-		officeID := db.getOfficeIDFromAdminID(adminID)
-		// 获取OrgDetail
-		orgDetail, uniqueSoldiers := db.getOrgDetail(officeID)
-		// 获取Total Members
-		orgInfo.TotalMems = len(uniqueSoldiers)
-		orgInfo.Orgdetail = orgDetail
-	} else { // 组织
-		// 通过AdminID获取其所在Office的名称
-		orgDetail.OfficeName = db.getOfficeOrgNameFromAdmin(adminID, false)
-		// 通过AdminID获取其所在Org名称
-		orgID := db.getOrgIDFromAdminID(adminID)
-		// 通过OrgID获取组织、下属组织的信息，如OrgName，成员，成员数量
-		orgs, memCount := db.getOrgAndAllLowerOrgs(orgID)
-		orgDetail.Orgs = orgs
-
-		orgInfo.Orgdetail = orgDetail
-		orgInfo.TotalMems = memCount
-	}
-	return &orgInfo, nil
-}
-
-// 根据OfficeID获取OrgInfo.OrgDetail
-func (db DBManager) getOrgDetail(officeID int) (OrgDetail, map[int]bool) {
-	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
-	var waitGroup sync.WaitGroup
-	orgDetail := OrgDetail{Orgs: make([]Org, 0), LowerOffices: make([]OrgDetail, 0)}
-
-	// 获取officeName
-	orgDetail.OfficeName = db.getOfficeName(officeID)
-	// 获取Orgs，Orgs的不重复SoldierIDs
-	orgIDs := db.getOrgIDsFromOffices(arrayInt{officeID})
-	if len(orgIDs) > 0 {
-		orgs, subUniqueSoldrs := db.getOrgs(orgIDs)
-		orgDetail.Orgs = orgs
-		// 插入Unique SoldierIDs
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
-			uniqueSoldiers.lock.Lock()
-			defer uniqueSoldiers.lock.Unlock()
-
-			for soldierID := range subUniqueSoldrs {
-				uniqueSoldiers.uniqueSoldrIDs[soldierID] = true
-			}
-		}()
-	}
-	// 获取LowerOffices
-	lowerOfficeIDs := db.getLowerOfficeIDsFromOffices(arrayInt{officeID})
-	if len(lowerOfficeIDs) > 0 {
-		var lowerOfficesLock sync.Mutex
-		for _, lowerOfficeID := range lowerOfficeIDs {
-			waitGroup.Add(1)
-			go func(officeID int) {
-				defer waitGroup.Done()
-
-				// 根据LowerOfficeIDs获取对应OrgDetails（OrgDetail.LowerOffices）
-				lowerOrgDetail, subUniqueSoldrs := db.getOrgDetail(officeID)
-				// 插入lowerOffices
-				waitGroup.Add(1)
-				go func() {
-					defer waitGroup.Done()
-					lowerOfficesLock.Lock()
-					defer lowerOfficesLock.Unlock()
-
-					orgDetail.LowerOffices = append(orgDetail.LowerOffices, lowerOrgDetail)
-				}()
-				// 插入UniqueSoldiers
-				waitGroup.Add(1)
-				go func() {
-					defer waitGroup.Done()
-					uniqueSoldiers.lock.Lock()
-					defer uniqueSoldiers.lock.Unlock()
-
-					for soldierID := range subUniqueSoldrs {
-						uniqueSoldiers.uniqueSoldrIDs[soldierID] = true
-					}
-				}()
-			}(lowerOfficeID)
-		}
-	}
-	waitGroup.Wait()
-	return orgDetail, uniqueSoldiers.uniqueSoldrIDs
-}
-
-type safeMap struct {
-	lock           sync.Mutex
-	uniqueSoldrIDs map[int]bool
-}
-
-// 通过OrgIDs获取Orgs（name, members, lowerOrgIDs）
-func (db DBManager) getOrgs(orgIDs []int) ([]Org, map[int]bool) {
-	orgs := make([]Org, len(orgIDs))
-	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
-	var waitGroup sync.WaitGroup
-
-	for i := range orgs {
-		waitGroup.Add(1)
-		go func(i int) {
-			defer waitGroup.Done()
-			// 根据OrgID获取组织信息
-			orgs[i] = db.getOrg(orgIDs[i])
-			// 获取不重复的SoldierID
-			uniqueSoldiers.lock.Lock()
-			defer uniqueSoldiers.lock.Unlock()
-			for _, soldier := range orgs[i].Members {
-				uniqueSoldiers.uniqueSoldrIDs[soldier.ID] = true
-			}
-		}(i)
-	}
-	waitGroup.Wait()
-	return orgs, uniqueSoldiers.uniqueSoldrIDs
-}
-
-// 通过OfficeID获取Office名称
-func (db DBManager) getOfficeName(officeID int) string {
+// GetOfficeName 通过OfficeID获取Office名称
+func (db DBManager) GetOfficeName(officeID int) string {
 	officeName := ""
 	o := orm.NewOrm()
 	o.Raw("SELECT name FROM Offices WHERE office_id = ?", officeID).QueryRow(&officeName)
 	return officeName
 }
 
-// 通过OrgID获取Org（name, 成员, 下属OrgIDs）
-func (db DBManager) getOrg(orgID int) Org {
-	org := Org{ID: orgID}
-	org.Name = db.getOrgName(orgID)
-	org.Members = db.getOrgMemsAndAdmins(orgID)
-	org.LowerOrgIDs = db.getLowerOrgIDsFromOrgIDs(arrayInt{orgID})
-	return org
-}
-
-// 通过OrgID获取组织及其所有下属的名称、成员
-// 返回该组织及所有下属组织（的信息），成员数量（成员不重复）
-func (db DBManager) getOrgAndAllLowerOrgs(orgID int) ([]Org, int) {
-	orgs := make([]Org, 0)
-	// 记录该组织及其下属组织的成员数量，人员不重复
-	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
-	var waitGroup sync.WaitGroup
-
-	// 使用queue找到orgID的所有下属Org，及其name, members, lowerOrgIDs
-	queue := make([]int, 1)
-	queue[0] = orgID
-	for len(queue) != 0 {
-		orgID := queue[0]
-		org := db.getOrg(orgID)
-		orgs = append(orgs, org)
-
-		queue = append(queue, org.LowerOrgIDs...)
-		queue = queue[1:] // queue.pop()
-
-		// 记录不重复的民兵
-		waitGroup.Add(1)
-		go func(members []Soldier) {
-			defer waitGroup.Done()
-			uniqueSoldiers.lock.Lock()
-			defer uniqueSoldiers.lock.Unlock()
-			for _, soldier := range members {
-				uniqueSoldiers.uniqueSoldrIDs[soldier.ID] = true
-			}
-		}(org.Members)
-	}
-	waitGroup.Wait()
-	memCount := len(uniqueSoldiers.uniqueSoldrIDs)
-	return orgs, memCount
-}
-
-// 通过OrgID获取其成员
-func (db DBManager) getOrgMemsAndAdmins(orgID int) []Soldier {
-	// 获取是管理员的民兵ID
-	isSoldierAdmin := make(map[int]bool) // map[soldierID]isAdmin
-	soldierIDs := db.getSoldrIDsWhoAreAdmins(orgID)
-	for _, soldierID := range soldierIDs {
-		isSoldierAdmin[soldierID] = true
-	}
-
-	soldiers := db.getOrgMems(orgID)
-	// 判断每个Soldier是否为Admin
-	for i := range soldiers {
-		if isSoldierAdmin[soldiers[i].ID] {
-			soldiers[i].IsAdmin = true
-		}
-	}
-	return soldiers
-}
-
 // 通过OrgID获取成员的soldier_id, name
-func (db DBManager) getOrgMems(orgID int) []Soldier {
+func (db DBManager) GetOrgMems(orgID int) []Soldier {
 	var soldiers []Soldier
 	o := orm.NewOrm()
 	rawSQL := "SELECT soldier_id, name FROM Soldiers WHERE soldier_id IN ("
@@ -846,7 +424,7 @@ func (db DBManager) getOrgMems(orgID int) []Soldier {
 }
 
 // 通过OrgID找到所有是Admin的民兵ID
-func (db DBManager) getSoldrIDsWhoAreAdmins(orgID int) []int {
+func (db DBManager) GetSoldrIDsWhoAreAdmins(orgID int) []int {
 	var soldierIDs []int
 	o := orm.NewOrm()
 	o.Raw("SELECT leader_sid FROM OrgAdminRelationships WHERE org_id = ?", orgID).QueryRows(&soldierIDs)
@@ -854,7 +432,7 @@ func (db DBManager) getSoldrIDsWhoAreAdmins(orgID int) []int {
 }
 
 // 通过OrgID获取Org名称
-func (db DBManager) getOrgName(orgID int) string {
+func (db DBManager) GetOrgName(orgID int) string {
 	orgName := ""
 	o := orm.NewOrm()
 	o.Raw("SELECT name FROM Organizations WHERE org_id = ?", orgID).QueryRow(&orgName)
@@ -862,7 +440,7 @@ func (db DBManager) getOrgName(orgID int) string {
 }
 
 // 通过组织的AdminID获取Admin所属单位名称
-func (db DBManager) getOfficeOrgNameFromAdmin(adminID int, isOffice bool) string {
+func (db DBManager) GetOfficeOrgNameFromAdmin(adminID int, isOffice bool) string {
 	officeName := ""
 	rawSQL := ""
 	o := orm.NewOrm()

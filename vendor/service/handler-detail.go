@@ -20,7 +20,7 @@ func detail(formatter *render.Render) http.HandlerFunc {
 		taskIDStr := reqData["taskID"]
 		taskID, _ := strconv.Atoi(taskIDStr)
 
-		taskInfo, _ := DBInfo.GetTaskDetail(taskID, adminID)
+		taskInfo, _ := Manager.GetTaskDetail(taskID, adminID)
 		formatter.JSON(w, http.StatusOK, taskInfo)
 	}
 }

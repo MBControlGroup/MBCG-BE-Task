@@ -33,13 +33,13 @@ func getTaskList(formatter *render.Render, isFinish bool) http.HandlerFunc {
 		curPage, _ := strconv.Atoi(curPageStr)
 
 		// 获取AdminID及类型
-		adminID, isOffice, err := getAdminAndType(w, r)
+		adminID, err := getAdminID(w, r)
 		if err != nil {
 			return
 		}
 
 		// 获取任务列表
-		taskList, err := DBInfo.GetTaskList(adminID, countsPerPage, countsPerPage*(curPage-1), isFinish, isOffice)
+		taskList, err := Manager.GetTaskList(adminID, countsPerPage, countsPerPage*(curPage-1), isFinish)
 		if err != nil {
 			fmt.Println(err)
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
