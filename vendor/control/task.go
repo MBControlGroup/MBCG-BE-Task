@@ -168,7 +168,7 @@ func (c Controller) getOrgAndAllLowerOrgs(orgID int) ([]model.Org, int) {
 func (c Controller) getOrg(orgID int) model.Org {
 	org := model.Org{ID: orgID}
 	org.Name = db.GetOrgName(orgID)
-	org.Members = c.getOrgMemsAndAdmins(orgID)
+	org.Members = c.getOrgMemsAndAdmins(orgID, false)
 	org.LowerOrgIDs = db.GetLowerOrgIDsFromOrgIDs([]int{orgID})
 	return org
 }
