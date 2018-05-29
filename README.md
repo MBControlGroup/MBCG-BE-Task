@@ -321,7 +321,7 @@ response:
 		"orgs":[					// 组织.若发布任务时没选择组织,则"orgs"为空
 			{
 				"name"		:"海珠区一排",	// 组织名称
-				"orgs_level"	:"S"/"D"/"C",	// 所属单位的级别.S代表街道，D代表区，C代表市
+				"org_level"	:"S"/"D"/"C",	// 所属单位的级别.S代表街道，D代表区，C代表市
 				"members"	:[
 					{
 						"soldier_id"	:123456,	// 民兵id
