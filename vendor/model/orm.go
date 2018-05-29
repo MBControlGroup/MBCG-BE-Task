@@ -414,10 +414,14 @@ func (db DBManager) GetOfficeName(officeID int) string {
 }
 
 // 通过OrgID获取成员的soldier_id, name
-func (db DBManager) GetOrgMems(orgID int) []Soldier {
+func (db DBManager) GetOrgMems(orgID int, needIMUser bool) []Soldier {
 	var soldiers []Soldier
 	o := orm.NewOrm()
-	rawSQL := "SELECT soldier_id, name FROM Soldiers WHERE soldier_id IN ("
+	rawSQL := "SELECT soldier_id, name"
+	if needIMUser {
+		rawSQL += ", im_user_id "
+	}
+	rawSQL += "FROM Soldiers WHERE soldier_id IN ("
 	rawSQL += "SELECT soldier_id FROM OrgSoldierRelationships WHERE serve_org_id = ?)"
 	o.Raw(rawSQL, orgID).QueryRows(&soldiers)
 	return soldiers
@@ -453,4 +457,27 @@ func (db DBManager) GetOfficeOrgNameFromAdmin(adminID int, isOffice bool) string
 	}
 	o.Raw(rawSQL, adminID).QueryRow(&officeName)
 	return officeName
+}
+
+// GetAttendOrgs 通过TaskID获取接受该任务的Orgs（不包括成员）
+func (db DBManager) GetAttendOrgs(taskID int) []Org {
+	orgs := make([]Org, 0)
+	o := orm.NewOrm()
+	rawSQL := "SELECT or.org_id org_id, or.name name， o.office_level org_level "
+	rawSQL += "FROM TaskAcceptOrgs to, Organizations or， Offices o "
+	rawSQL += "WHERE o.org_id = to.ac_org_id AND "
+	rawSQL += "or.serve_office_id = o.office_id AND to.ac_task_id = ?"
+	o.Raw(rawSQL, taskID).QueryRows(&orgs)
+	return orgs
+}
+
+// GetAttendOffices 通过TaskID获取接受该任务的Offices（不包括成员）
+func (db DBManager) GetAttendOffices(taskID int) []Office {
+	offices := make([]Office, 0)
+	o := orm.NewOrm()
+	rawSQL := "SELECT of.office_id office_id, of.name name, of.office_level office_level "
+	rawSQL += "FROM TaskAcceptOffices tof, Offices of "
+	rawSQL += "WHERE tof.ac_office_id = of.office_id AND tof.ac_task_id = ?"
+	o.Raw(rawSQL, taskID).QueryRows(&offices)
+	return offices
 }

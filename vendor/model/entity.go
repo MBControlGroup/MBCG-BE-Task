@@ -33,10 +33,10 @@ type OfficeInfo struct {
 	OfficeDetail Office `json:"office_detail"`
 }
 
-// Office 目前主要针对"获取下属单位及人员"设计
 type Office struct {
-	ID        int       `json:"office_id"`
-	Name      string    `json:"name"`
+	ID        int       `json:"office_id" orm:"column(office_id)"`
+	Name      string    `json:"name" orm:"column(name)"`
+	Level     string    `json:"office_level" orm:"column(office_level)"`
 	Members   []Soldier `json:"members"`
 	LowerOffs []Office  `json:"lower_offices"`
 }
@@ -55,10 +55,11 @@ type OrgDetail struct {
 }
 
 type Org struct {
-	ID          int       `json:"org_id"`
-	Name        string    `json:"name"`
+	ID          int       `json:"org_id,omitempty" orm:"column(org_id)"`
+	Name        string    `json:"name" orm:"column(name)"`
+	Level       string    `json:"org_level,omitempty" orm:"column(org_level)"`
 	Members     []Soldier `json:"members"`
-	LowerOrgIDs []int     `json:"lower_org_ids"`
+	LowerOrgIDs []int     `json:"lower_org_ids,omitempty"`
 }
 
 // Soldier 用于所有JSON数据的传输

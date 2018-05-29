@@ -174,7 +174,7 @@ func (c Controller) getOrg(orgID int) model.Org {
 }
 
 // 通过OrgID获取其成员
-func (c Controller) getOrgMemsAndAdmins(orgID int) []model.Soldier {
+func (c Controller) getOrgMemsAndAdmins(orgID int, needIMUser bool) []model.Soldier {
 	// 获取是管理员的民兵ID
 	isSoldierAdmin := make(map[int]bool) // map[soldierID]isAdmin
 	soldierIDs := db.GetSoldrIDsWhoAreAdmins(orgID)
@@ -182,7 +182,7 @@ func (c Controller) getOrgMemsAndAdmins(orgID int) []model.Soldier {
 		isSoldierAdmin[soldierID] = true
 	}
 
-	soldiers := db.GetOrgMems(orgID)
+	soldiers := db.GetOrgMems(orgID, needIMUser)
 	// 判断每个Soldier是否为Admin
 	for i := range soldiers {
 		if isSoldierAdmin[soldiers[i].ID] {

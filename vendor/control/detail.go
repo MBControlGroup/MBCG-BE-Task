@@ -2,6 +2,7 @@ package control
 
 import (
 	"model"
+	"sync"
 	"time"
 )
 
@@ -23,4 +24,30 @@ func (c Controller) GetTaskDetail(taskID int, watchAdminID int) (*model.TaskInfo
 		}
 	}
 	return &task[0], nil
+}
+
+// GetAttendMems 查看参与任务的人员
+func (c Controller) GetAttendMems(taskID int) ([]model.Office, []model.Org, []model.Soldier) {
+	var wg sync.WaitGroup
+	// 获取接受任务的单位及其成员
+	offices := db.GetAttendOffices(taskID)
+	for i := range offices {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			offices[i].Members = c.getmem
+		}(i)
+	}
+
+	// 获取接受任务的组织及其成员
+	orgs := db.GetAttendOrgs(taskID)
+	for i := range orgs {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			orgs[i].Members = c.getOrgMemsAndAdmins(orgs[i].ID, true)
+		}(i)
+	}
+
+	wg.Wait()
 }
