@@ -137,7 +137,7 @@ func (c Controller) calTasksStatus(tasks []model.TaskInfo) {
 		go func(i int) {
 			defer waitGroup.Done()
 			// 获取该任务的接受人数
-			acceptCount := db.GetAcceptCountsFromTask(tasks[i].ID)
+			acceptCount := db.GetTaskAcceptCount(tasks[i].ID)
 			// 把该任务的gather_time转为time.Time
 			gatherTime, _ := time.Parse("2006-01-02 15:04:05", tasks[i].GatherTime)
 
@@ -169,7 +169,7 @@ func (c Controller) calTasksFinished(tasks []model.TaskInfo) {
 		waitGroup.Add(1)
 		go func(i int) {
 			defer waitGroup.Done()
-			tasks[i].AcCount = db.GetAcceptCountsFromTask(tasks[i].ID)
+			tasks[i].AcCount = db.GetTaskAcceptCount(tasks[i].ID)
 			tasks[i].CheckCount = db.GetCheckCountsFromTask(tasks[i].ID)
 			refuseCount := db.GetRefuseCountsFromTask(tasks[i].ID)
 			tasks[i].RespCount = tasks[i].AcCount + refuseCount

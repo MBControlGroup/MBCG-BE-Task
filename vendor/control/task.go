@@ -238,7 +238,7 @@ func (c Controller) getOfficeDetail(officeID int) (model.Office, int, error) {
 	// 根据OfficeID获取单位名称
 	office.Name = db.GetOfficeName(officeID)
 	// 根据OfficeID获取所含民兵及人数
-	soldiers, memCounts := db.GetOfficeMems(officeID)
+	soldiers, memCounts := db.GetOfficeMems(officeID, false)
 	office.Members = soldiers
 
 	// 获取该单位的下属单位

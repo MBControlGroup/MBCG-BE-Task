@@ -69,7 +69,7 @@ type Soldier struct {
 	Phone       int64  `json:"phone,omitempty" orm:"column(phone_num)"`
 	IMUserID    int    `json:"im_user_id,omitempty" orm:"column(im_user_id)"`
 	IsAdmin     bool   `json:"is_admin,omitempty"`
-	ServeOffice string `json:"serve_office,omitempty"`
+	ServeOffice string `json:"serve_office,omitempty" orm:"column(serve_office)"`
 	Status      string `json:"status,omitempty"`
 	RespTime    string `json:"resp_time,omitempty"`
 }

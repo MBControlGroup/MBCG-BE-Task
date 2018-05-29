@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -260,17 +261,21 @@ func (db DBManager) GetCommonPlaces(adminID int, isOffice bool) []Place {
 	return places
 }
 
-// 通过OfficeID获取成员
-func (db DBManager) GetOfficeMems(officeID int) ([]Soldier, int64) {
+// GetOfficeMems 通过OfficeID获取成员
+func (db DBManager) GetOfficeMems(officeID int, needIMUser bool) ([]Soldier, int64) {
 	soldiers := make([]Soldier, 0)
 	o := orm.NewOrm()
-	rawSQL := "SELECT soldier_id, name FROM Soldiers WHERE serve_office_id = ?"
+	rawSQL := "SELECT soldier_id, name "
+	if needIMUser {
+		rawSQL += ", im_user_id "
+	}
+	rawSQL += "FROM Soldiers WHERE serve_office_id = ?"
 	memCounts, _ := o.Raw(rawSQL, officeID).QueryRows(&soldiers)
 	return soldiers, memCounts
 }
 
-// 获取从属于该Office的Organizations ID
-func (db DBManager) GetOrgIDsFromOffices(officeIDs arrayInt) arrayInt {
+// GetOrgIDsFromOffices 获取从属于该Office的Organizations ID
+func (db DBManager) GetOrgIDsFromOffices(officeIDs arrayInt) []int {
 	var orgIDs arrayInt
 	o := orm.NewOrm()
 	rawSQL := "SELECT org_id FROM Organizations WHERE serve_office_id IN " + fmt.Sprint(officeIDs)
@@ -279,7 +284,7 @@ func (db DBManager) GetOrgIDsFromOffices(officeIDs arrayInt) arrayInt {
 }
 
 // 获取这些单位的下属单位
-func (db DBManager) GetLowerOfficeIDsFromOffices(officeIDs arrayInt) arrayInt {
+func (db DBManager) GetLowerOfficeIDsFromOffices(officeIDs arrayInt) []int {
 	var lowerOfficeIDs arrayInt
 	o := orm.NewOrm()
 	rawSQL := "SELECT lower_office_id FROM OfficeRelationships WHERE higher_office_id IN " + fmt.Sprint(officeIDs)
@@ -310,7 +315,7 @@ func (db DBManager) GetTaskCountFromAdminIDs(adminIDs arrayInt, isFinish bool) i
 	return taskCount
 }
 
-// getTasksFromAdminIDs 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
+// GetTasksFromAdminIDs 通过AdminIDs获取他们发布过的任务, 分类为"执行中"和"已完成"
 // 获取“执行中”“已完成”Tasks所需信息的交集， 但不包括发起单位、组织， 集合地点名称的信息
 func (db DBManager) GetTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offset, countsPerPage int) []TaskInfo {
 	var tasks []TaskInfo
@@ -357,7 +362,8 @@ func (db DBManager) GetCheckCountsFromTask(taskID int) int {
 	return count
 }
 
-func (db DBManager) GetAcceptCountsFromTask(taskID int) int {
+// GetTaskAcceptCount 获取任务的接受人数
+func (db DBManager) GetTaskAcceptCount(taskID int) int {
 	var count int
 	o := orm.NewOrm()
 	rawSQL := "SELECT COUNT(*) FROM GatherNotifications WHERE gather_task_id = ? AND read_status = 'AC'"
@@ -463,10 +469,10 @@ func (db DBManager) GetOfficeOrgNameFromAdmin(adminID int, isOffice bool) string
 func (db DBManager) GetAttendOrgs(taskID int) []Org {
 	orgs := make([]Org, 0)
 	o := orm.NewOrm()
-	rawSQL := "SELECT or.org_id org_id, or.name name， o.office_level org_level "
-	rawSQL += "FROM TaskAcceptOrgs to, Organizations or， Offices o "
-	rawSQL += "WHERE o.org_id = to.ac_org_id AND "
-	rawSQL += "or.serve_office_id = o.office_id AND to.ac_task_id = ?"
+	rawSQL := "SELECT org.org_id org_id, org.name name, off.office_level org_level "
+	rawSQL += "FROM TaskAcceptOrgs tao, Organizations org, Offices off "
+	rawSQL += "WHERE org.org_id = tao.ac_org_id "
+	rawSQL += "AND org.serve_office_id = off.office_id AND tao.ac_task_id = ?"
 	o.Raw(rawSQL, taskID).QueryRows(&orgs)
 	return orgs
 }
@@ -480,4 +486,79 @@ func (db DBManager) GetAttendOffices(taskID int) []Office {
 	rawSQL += "WHERE tof.ac_office_id = of.office_id AND tof.ac_task_id = ?"
 	o.Raw(rawSQL, taskID).QueryRows(&offices)
 	return offices
+}
+
+// GetSoldiersExclude 通过TaskID获取接受该任务的民兵，除去UniqueSoldierIDs里的IDs
+func (db DBManager) GetSoldiersExclude(taskID int, uniqueSoldierIDs mapInt) []Soldier {
+	soldiers := make([]Soldier, 0)
+	o := orm.NewOrm()
+	rawSQL := "SELECT s.soldier_id soldier_id, s.name name, o.name serve_office, s.im_user_id "
+	rawSQL += "FROM GatherNotifications g, Soldiers s, Offices o "
+	rawSQL += "WHERE g.gather_task_id = ? AND s.soldier_id = g.recv_soldier_id "
+	rawSQL += "AND o.office_id = s.serve_office_id "
+	if len(uniqueSoldierIDs) > 0 {
+		rawSQL += "AND g.recv_soldier_id NOT IN " + fmt.Sprint(uniqueSoldierIDs)
+	}
+	o.Raw(rawSQL, taskID).QueryRows(&soldiers)
+	return soldiers
+}
+
+type mapInt map[int]bool
+
+func (m mapInt) String() string {
+	str := "("
+	if len(m) >= 1 {
+		for key := range m {
+			str += strconv.Itoa(key) + ","
+		}
+		str = str[:len(str)-1]
+	}
+	str += ")"
+	return str
+}
+
+// GetTaskMemCountLaunchDate 通过TaskID获取该任务的MemCount
+func (db DBManager) GetTaskMemCountLaunchDate(taskID int) (int, string) {
+	var (
+		memCount   int
+		launchDate string
+	)
+	o := orm.NewOrm()
+	rawSQL := "SELECT mem_count, launch_datetime FROM Tasks WHERE task_id = ?"
+	o.Raw(rawSQL, taskID).QueryRow(&memCount, &launchDate)
+	return memCount, launchDate
+}
+
+// GetTaskNotifyCount 通过TaskID获取通知人数
+func (db DBManager) GetTaskNotifyCount(taskID int) int {
+	var notifyCount int
+	o := orm.NewOrm()
+	rawSQL := "SELECT COUNT(*) FROM GatherNotifications WHERE gather_task_id = ?"
+	o.Raw(rawSQL, taskID).QueryRow(&notifyCount)
+	return notifyCount
+}
+
+// GetTaskResponseCount 获取任务的响应人数
+func (db DBManager) GetTaskResponseCount(taskID int) int {
+	var respCount int
+	o := orm.NewOrm()
+	rawSQL := "SELECT COUNT(*) FROM GatherNotifications "
+	rawSQL += "WHERE gather_task_id = ? AND res_datetime IS NOT NULL"
+	o.Raw(rawSQL, taskID).QueryRow(&respCount)
+	return respCount
+}
+
+// GetTaskAvgRespTime 获取任务的平均响应时间
+func (db DBManager) GetTaskAvgRespTime(taskID int) string {
+	var avg float64
+	o := orm.NewOrm()
+	rawSQL := "SELECT avg(res_datetime) FROM GatherNotifications "
+	rawSQL += "WHERE gather_task_id = ? AND res_datetime IS NOT NULL"
+	o.Raw(rawSQL, taskID).QueryRow(&avg)
+	if avg == 0 {
+		return ""
+	}
+
+	avgTime, _ := time.Parse("20060102150405", strconv.Itoa(int(avg)))
+	return avgTime.String()[:19] // 2018-05-29 23:23:20，刚好19个字符
 }

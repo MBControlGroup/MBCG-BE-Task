@@ -29,16 +29,22 @@ func (c Controller) GetTaskDetail(taskID int, watchAdminID int) (*model.TaskInfo
 // GetAttendMems 查看参与任务的人员
 func (c Controller) GetAttendMems(taskID int) ([]model.Office, []model.Org, []model.Soldier) {
 	var wg sync.WaitGroup
+	uniqueSoldiers := safeMap{uniqueSoldrIDs: make(map[int]bool)}
 	// 获取接受任务的单位及其成员
 	offices := db.GetAttendOffices(taskID)
 	for i := range offices {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			offices[i].Members = c.getmem
+			offices[i].Members, _ = db.GetOfficeMems(offices[i].ID, true)
+
+			uniqueSoldiers.lock.Lock()
+			defer uniqueSoldiers.lock.Unlock()
+			for _, member := range offices[i].Members {
+				uniqueSoldiers.uniqueSoldrIDs[member.ID] = true
+			}
 		}(i)
 	}
-
 	// 获取接受任务的组织及其成员
 	orgs := db.GetAttendOrgs(taskID)
 	for i := range orgs {
@@ -46,8 +52,17 @@ func (c Controller) GetAttendMems(taskID int) ([]model.Office, []model.Org, []mo
 		go func(i int) {
 			defer wg.Done()
 			orgs[i].Members = c.getOrgMemsAndAdmins(orgs[i].ID, true)
+
+			uniqueSoldiers.lock.Lock()
+			defer uniqueSoldiers.lock.Unlock()
+			for _, member := range orgs[i].Members {
+				uniqueSoldiers.uniqueSoldrIDs[member.ID] = true
+			}
 		}(i)
 	}
-
 	wg.Wait()
+	// 获取接受任务的个人
+	soldiers := db.GetSoldiersExclude(taskID, uniqueSoldiers.uniqueSoldrIDs)
+
+	return offices, orgs, soldiers
 }
