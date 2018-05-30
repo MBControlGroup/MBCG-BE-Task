@@ -435,7 +435,7 @@ response:
 	}
 ```
 
-### 查看任务的集合人员列表 [/task/working/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
+### 查看任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
 item_counts_per_page: 每页显示人员的数量
 
 cur_page: 当前页数
