@@ -390,7 +390,7 @@ response:
 	200 OK
 	{
 		"total_pages":1,	// 总页数
-		"total_mem":10,		// 总人数 
+		"total_mem":10,		// 收到集合通知的总人数 
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
@@ -424,7 +424,8 @@ request:
 response:
 	200 OK
 	{
-		"check_counts"	:30		// 签到人数
+		"accept_count"	:50		// 接受任务人数
+		"check_count"	:30		// 签到人数
 	}
 
 	307 Temporary Redirect
@@ -445,7 +446,7 @@ response:
 	200 OK
 	{
 		"total_pages":1,	// 总页数
-		"total_mem":10,		// 总人数 
+		"total_mem":10,		// 接受任务的总人数 
 		"data":[
 			{
 				"soldier_id"	:123456,		// 民兵id
