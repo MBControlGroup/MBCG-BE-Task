@@ -34,6 +34,6 @@ func initRoutes(mx *mux.Router, formatter *render.Render) {
 	mx.HandleFunc("/task/response/{taskID}", response(formatter)).Methods("GET")                                   // 查看任务响应情况
 	mx.HandleFunc("/task/response/mem/{taskID}/{countsPerPage}/{curPage}", response_mem(formatter)).Methods("GET") // 查看任务的响应人员列表
 
-	mx.HandleFunc("/task/gather/{taskID}", gather(formatter)).Methods("GET")                                  // 查看任务集合情况
-	mx.HandleFunc("task/gather/mem/{taskID}/{countsPerPage}/{curPage}", gather_mem(formatter)).Methods("GET") // 查看任务的集合人员列表
+	mx.HandleFunc("/task/gather/{taskID}", gather(formatter)).Methods("GET")                                   // 查看任务集合情况
+	mx.HandleFunc("/task/gather/mem/{taskID}/{countsPerPage}/{curPage}", gather_mem(formatter)).Methods("GET") // 查看任务的集合人员列表
 }

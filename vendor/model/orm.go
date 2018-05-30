@@ -582,13 +582,21 @@ func (db DBManager) GetTaskResponseMems(taskID, offset, count int) []Soldier {
 func (db DBManager) GetTaskGatherMems(taskID, offset, count int) []Soldier {
 	soldiers := make([]Soldier, 0)
 	o := orm.NewOrm()
-	rawSQL := "SELECT s.soldier_id soldier_id, s.name name, s.im_user_id im_user_id, s.phone_num phone_num "
-	rawSQL += "off.name serve_office, CONVERT(tcn.check_task_id, CHAR(2)) status "
+	rawSQL := "SELECT s.soldier_id soldier_id, s.name name, s.im_user_id im_user_id, s.phone_num phone_num, "
+	rawSQL += "off.name serve_office, convert(tcn.check_task_id, char(2)) status "
 	rawSQL += "FROM Soldiers s JOIN Offices off JOIN GatherNotifications g "
 	rawSQL += "LEFT JOIN TaskCheckNames tcn ON(g.recv_soldier_id = tcn.check_soidier_id) "
 	rawSQL += "WHERE g.gather_task_id = ? AND g.read_status = 'AC' AND g.recv_soldier_id = s.soldier_id "
 	rawSQL += "AND off.office_id = s.serve_office_id "
 	rawSQL += "LIMIT ? OFFSET ?"
-	o.Raw(rawSQL, taskID, offset, count).QueryRows(&soldiers)
+	o.Raw(rawSQL, taskID, count, offset).QueryRows(&soldiers)
+
+	for i := range soldiers {
+		if soldiers[i].Status == "" {
+			soldiers[i].Status = "UN"
+		} else {
+			soldiers[i].Status = "CH"
+		}
+	}
 	return soldiers
 }
