@@ -29,7 +29,7 @@ func response_mem(formatter *render.Render) http.HandlerFunc {
 		}
 		b, _ := json.Marshal(reqData)
 		fmt.Println(string(b))
-		responseMem := Manager.GetTaskRespMem(reqData.TaskID, reqData.CountsPerPage*(reqData.CurPage-1), reqData.CountsPerPage)
+		responseMem := Manager.GetTaskRespMems(reqData.TaskID, reqData.CountsPerPage*(reqData.CurPage-1), reqData.CountsPerPage)
 		formatter.JSON(w, http.StatusOK, responseMem)
 	}
 }

@@ -61,9 +61,9 @@ type response struct {
 	AvgRespTime string `json:"avg_resp_time,omitempty" orm:"avg_resp_time"`
 }
 
-// GetTaskRespMem 任务的响应人员列表
-func (c Controller) GetTaskRespMem(taskID, offset, countsPerPage int) *respMem {
-	respMemList := respMem{}
+// GetTaskRespMems 任务的响应人员列表
+func (c Controller) GetTaskRespMems(taskID, offset, countsPerPage int) *MemList {
+	respMemList := MemList{}
 	respCount := db.GetTaskResponseCount(taskID)
 	respMemList.MemCount = respCount
 	respMemList.PageCount = int(math.Ceil(float64(respCount) / float64(countsPerPage)))
@@ -71,7 +71,7 @@ func (c Controller) GetTaskRespMem(taskID, offset, countsPerPage int) *respMem {
 	return &respMemList
 }
 
-type respMem struct {
+type MemList struct {
 	PageCount int             `json:"total_pages"`
 	MemCount  int             `json:"total_mem"`
 	Members   []model.Soldier `json:"data"`
