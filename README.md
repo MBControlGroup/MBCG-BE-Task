@@ -6,7 +6,7 @@
 
 [Apiary](https://task25.docs.apiary.io/#)
 
-**注意：以下所有数据的值为空（int, float），false（bool），""（string）时，有可能会不显示该项数据**
+**注意：以下所有数据的值为空，如0（int, float），false（bool），""（string）时，有可能会不显示该项数据**
 
 ## 任务
 
