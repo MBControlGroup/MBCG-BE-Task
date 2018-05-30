@@ -562,3 +562,18 @@ func (db DBManager) GetTaskAvgRespTime(taskID int) string {
 	avgTime, _ := time.Parse("20060102150405", strconv.Itoa(int(avg)))
 	return avgTime.String()[:19] // 2018-05-29 23:23:20，刚好19个字符
 }
+
+// GetTaskResponseMems 获取任务的响应人员列表
+func (db DBManager) GetTaskResponseMems(taskID, offset, count int) []Soldier {
+	soldiers := make([]Soldier, 0)
+	o := orm.NewOrm()
+	rawSQL := "SELECT s.soldier_id soldier_id, s.name name, s.im_user_id im_user_id, "
+	rawSQL += "s.phone_num phone_num, off.name serve_office, g.read_status status, "
+	rawSQL += "g.res_datetime res_datetime "
+	rawSQL += "FROM Soldiers s, Offices off, GatherNotifications g "
+	rawSQL += "WHERE s.serve_office_id = off.office_id AND g.gather_task_id = ? "
+	rawSQL += "AND g.recv_soldier_id = s.soldier_id "
+	rawSQL += "LIMIT ? OFFSET ?"
+	o.Raw(rawSQL, taskID, count, offset).QueryRows(&soldiers)
+	return soldiers
+}

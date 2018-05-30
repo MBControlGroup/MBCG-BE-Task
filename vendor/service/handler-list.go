@@ -3,9 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )
 
@@ -26,20 +24,13 @@ func doneList(formatter *render.Render) http.HandlerFunc {
 func getTaskList(formatter *render.Render, isFinish bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 解析URL参数
-		reqData := mux.Vars(r)
-		countsPerPageStr := reqData["countsPerPage"]
-		countsPerPage, _ := strconv.Atoi(countsPerPageStr)
-		curPageStr := reqData["curPage"]
-		curPage, _ := strconv.Atoi(curPageStr)
-
-		// 获取AdminID及类型
-		adminID, err := getAdminID(w, r)
+		reqData, err := parse(w, r, true, false, true)
 		if err != nil {
 			return
 		}
 
 		// 获取任务列表
-		taskList, err := Manager.GetTaskList(adminID, countsPerPage, countsPerPage*(curPage-1), isFinish)
+		taskList, err := Manager.GetTaskList(reqData.AdminID, reqData.CountsPerPage, reqData.CountsPerPage*(reqData.CurPage-1), isFinish)
 		if err != nil {
 			fmt.Println(err)
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})

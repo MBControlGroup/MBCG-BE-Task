@@ -2,6 +2,8 @@ package control
 
 import (
 	"fmt"
+	"math"
+	"model"
 	"sync"
 	"time"
 )
@@ -57,4 +59,20 @@ type response struct {
 	RespCount   int    `json:"response_count" orm:"resp_count"`
 	AcceptCount int    `json:"accept_count" orm:"ac_count"`
 	AvgRespTime string `json:"avg_resp_time,omitempty" orm:"avg_resp_time"`
+}
+
+// GetTaskRespMem 任务的响应人员列表
+func (c Controller) GetTaskRespMem(taskID, offset, countsPerPage int) *respMem {
+	respMemList := respMem{}
+	respCount := db.GetTaskResponseCount(taskID)
+	respMemList.MemCount = respCount
+	respMemList.PageCount = int(math.Ceil(float64(respCount) / float64(countsPerPage)))
+	respMemList.Members = db.GetTaskResponseMems(taskID, offset, countsPerPage)
+	return &respMemList
+}
+
+type respMem struct {
+	PageCount int             `json:"total_pages"`
+	MemCount  int             `json:"total_mem"`
+	Members   []model.Soldier `json:"data"`
 }

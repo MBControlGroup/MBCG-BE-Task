@@ -70,8 +70,8 @@ type Soldier struct {
 	IMUserID    int    `json:"im_user_id,omitempty" orm:"column(im_user_id)"`
 	IsAdmin     bool   `json:"is_admin,omitempty"`
 	ServeOffice string `json:"serve_office,omitempty" orm:"column(serve_office)"`
-	Status      string `json:"status,omitempty"`
-	RespTime    string `json:"resp_time,omitempty"`
+	Status      string `json:"status,omitempty" orm:"column(status)"`
+	RespTime    string `json:"resp_time,omitempty" orm:"column(res_datetime)"`
 }
 
 // List 页数, 任务列表
