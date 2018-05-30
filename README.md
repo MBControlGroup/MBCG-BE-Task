@@ -6,7 +6,7 @@
 
 [Apiary](https://task25.docs.apiary.io/#)
 
-**注意：以下所有数据的值为0（int, float类型），false（bool类型），""（string类型）时，默认不显示该项数据，除非有特别注明**
+**注意：以下所有数据的值为空（int, float），false（bool），""（string）时，有可能会不显示该项数据**
 
 ## 任务
 
@@ -399,7 +399,7 @@ response:
 				"phone"		:13600000000,		// 手机号码
 				"serve_office"	:"海珠人武部",		// 所属单位
 				"status"	:"UR"/"RF"/"AC", 	 // 响应状态,"UR"代表未读,"RF"拒绝,"AC"接受
-				"resp_time"	:"2018-05-06 12:02:00"	// 响应时间
+				"resp_time"	:"2018-05-06 12:02:00"	// 响应时间，若status == "UR"，该项为空（不显示）
 			},
 			...
 		]
