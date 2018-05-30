@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"control"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 )
 
 // DBInfo 全局的数据层管理器
-var DBInfo model.DBManager
+var Manager control.Controller
 
 type tokenMessg struct {
 	Success bool
@@ -61,8 +62,8 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 		// TODO: 获取管理员ID
 
 		// 结束任务
-		err := DBInfo.EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
-		if err != nil {                          // DB UPDATE 出错
+		err := Manager.EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
+		if err != nil {                           // DB UPDATE 出错
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else { // 成功结束任务
 			w.WriteHeader(http.StatusNoContent)
@@ -80,13 +81,13 @@ type BasicInfo struct {
 func basicInfo(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 获取管理员ID和类型
-		adminID, isOffice, err := getAdminAndType(w, r)
+		adminID, err := getAdminID(w, r)
 		if err != nil { // 若出错, 则GetAdminAndType函数已经对ResponseWriter进行写入, 可直接返回
 			return
 		}
 
 		// 获取Admin所在组织/单位的常用地点
-		places, err := DBInfo.GetCommonPlaces(adminID, isOffice)
+		places, isOffice, err := Manager.GetCommonPlaces(adminID)
 		if err != nil { // 查询出错
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 			return
@@ -126,7 +127,7 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		fmt.Println(reqPlace)
 		fmt.Println(reqAcMem)
 
-		err = DBInfo.CreateTask(&reqTask, &reqPlace, &reqAcMem)
+		err = Manager.CreateTask(&reqTask, &reqPlace, &reqAcMem)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else {
@@ -138,12 +139,12 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 // 获取所有下属组织及人员, /task/orgs [GET]
 func orgs(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		adminID, isOffice, err := getAdminAndType(w, r)
+		adminID, err := getAdminID(w, r)
 		if err != nil {
 			return
 		}
 
-		orgInfo, err := DBInfo.GetOrgInfoAndMems(adminID, isOffice)
+		orgInfo, err := Manager.GetOrgInfoAndMems(adminID)
 		if err != nil {
 			fmt.Println(err)
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
@@ -162,7 +163,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 		}
 
 		// 从AdminID获取Offices和成员
-		officeInfo, err := DBInfo.GetOfficeInfoAndMems(adminID)
+		officeInfo, err := Manager.GetOfficeInfoAndMems(adminID)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 			return
@@ -175,7 +176,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 // getAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
 // 若出错，会对ResponseWriter进行写入
 func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
-	return 4, nil
+	return 3, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	// 获取cookie中的token
@@ -209,27 +210,4 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 		return 0, errors.New(messg.Detail)
 	}
 	return messg.Id, nil // token合法，返回 AdminID
-}
-
-// getAdminAndType 输入token字符串, 返回管理员ID和类型(true: 单位, false: 组织)
-// 若出错，会对ResponseWriter进行写入
-func getAdminAndType(w http.ResponseWriter, r *http.Request) (adminID int, isOff bool, err error) {
-	formatter := render.New(render.Options{IndentJSON: true})
-
-	// 获取管理员ID
-	adminID, err = getAdminID(w, r)
-	if err != nil { // 可能是token不合法
-		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
-		log.Println(err)
-		return adminID, false, err
-	}
-
-	// 获取管理员类型
-	isOff, err = DBInfo.GetAdminType(adminID)
-	if err != nil { // 可能无法通过AdminID找到相应的管理员信息
-		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
-		log.Println(err)
-		return adminID, false, err
-	}
-	return adminID, isOff, nil
 }
