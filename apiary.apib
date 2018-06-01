@@ -203,6 +203,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "total_tasks": 5,
             "data":[
                 {
+                    "task_id": 123456,
                     "title": "消防演习",
                     "launch_admin": "海珠区一排",
                     "launch_datetime": "2018-05-06 12:00:00",
@@ -212,6 +213,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "detail": 0.4,
                     "mem_count": 30
                 },{
+                    "task_id": 654321,
                     "title": "紧急任务",
                     "launch_admin": "琶洲一连",
                     "launch_datetime": "2018-05-16 15:00:00",
@@ -237,6 +239,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "total_tasks": 5,
             "data":[
                 {
+                    "task_id": 123456,
                     "title": "消防演习",
                     "launch_admin": "海珠区一排",
                     "launch_datetime": "2018-05-06 12:00:00",
@@ -246,6 +249,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "accept_count": 30,
                     "check_count": 30
                 },{
+                    "task_id": 654321,
                     "title": "紧急任务",
                     "launch_admin": "琶洲一连",
                     "launch_datetime": "2018-05-16 15:00:00",
@@ -308,7 +312,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "orgs":[
                 {
                     "name": "小谷围一排",
-                    "orgs_level": "S",
+                    "org_level": "S",
                     "members": [
                         {
                             "soldier_id": 123456,
@@ -324,7 +328,6 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "soldier_id": 123456,
                     "name": "张三",
                     "serve_office": "白云人武部",
-                    "serve_orgs": "海珠区一排",
                     "im_user_id": 123456
                 }
             ]
@@ -390,12 +393,16 @@ https://github.com/MBControlGroup/MBCG-BE-Task
     + Body
 
         {
+            "accept_count": 50,
             "check_counts": 30
         }
 
+
 ## 任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
-### 查看任务的集合人员列表 [GE
+### 查看任务的集合人员列表 [GET]
+
++ Response
 
     + Body
 
