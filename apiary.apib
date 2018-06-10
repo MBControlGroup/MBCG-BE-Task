@@ -11,7 +11,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 
 ## 任务 [/task]
 
-### 发布任务 [POST]
+### 发布任务 [POST /task]
 
 + Request (application/json; charset=utf-8)
 
@@ -33,7 +33,25 @@ https://github.com/MBControlGroup/MBCG-BE-Task
         
 + Response 201
 
-### 获取基本信息 [GET]
+### 结束任务 [POST /task/finish]
+
++ Request (application/json)
+
+        {
+            "task_id": 123456
+        }
+
++ Response 204
+
+
+## 基本信息 [/task/info]
+
+### 获取基本信息 [POST /task/info]
+
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -56,20 +74,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             ]
         }
 
-### 结束任务 [PUT]
+### 获取所有下属组织及成员 [POST /task/orgs]
 
 + Request (application/json)
 
-    {
-        "task_id": 123456
-    }
-
-+ Response 204
-
-        
-## 下属组织及成员 [/task/orgs]
-
-### 获取所有下属组织及成员 [GET]
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -144,9 +154,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             }
         }
 
-## 下属单位及成员 [/task/offices]
+### 获取所有下属单位及成员 [POST /task/offices]
 
-### 获取所有下属单位及成员 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -189,10 +202,14 @@ https://github.com/MBControlGroup/MBCG-BE-Task
         }
 
 
+## 任务列表 [/task/list]
 
-## 执行中任务列表 [/task/working/{item_counts_per_page}/{cur_page}]
+### 查看执行中任务列表 [POST /task/working/{item_counts_per_page}/{cur_page}]
 
-### 查看执行中任务列表 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -203,6 +220,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "total_tasks": 5,
             "data":[
                 {
+                    "task_id": 123456,
                     "title": "消防演习",
                     "launch_admin": "海珠区一排",
                     "launch_datetime": "2018-05-06 12:00:00",
@@ -212,6 +230,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "detail": 0.4,
                     "mem_count": 30
                 },{
+                    "task_id": 654321,
                     "title": "紧急任务",
                     "launch_admin": "琶洲一连",
                     "launch_datetime": "2018-05-16 15:00:00",
@@ -224,9 +243,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             ]
         }
 
-## 已完成任务列表 [/task/done/{item_counts_per_page}/{cur_page}]
+### 查看已完成任务列表 [POST /task/done/{item_counts_per_page}/{cur_page}]
 
-### 查看已完成任务列表 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -237,6 +259,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "total_tasks": 5,
             "data":[
                 {
+                    "task_id": 123456,
                     "title": "消防演习",
                     "launch_admin": "海珠区一排",
                     "launch_datetime": "2018-05-06 12:00:00",
@@ -246,6 +269,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "accept_count": 30,
                     "check_count": 30
                 },{
+                    "task_id": 654321,
                     "title": "紧急任务",
                     "launch_admin": "琶洲一连",
                     "launch_datetime": "2018-05-16 15:00:00",
@@ -259,9 +283,14 @@ https://github.com/MBControlGroup/MBCG-BE-Task
         }
 
 
-## 任务详情 [/task/detail/{task_id}]
+## 任务详情 [/task/detail]
 
-### 查看任务详情 [GET]
+### 查看任务详情 [POST /task/detail/{task_id}]
+
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -283,9 +312,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "is_launcher": true
         }
 
-## 参与任务的人员 [/task/detail/mem/{task_id}]
+### 查看参与任务的人员 [POST /task/detail/mem/{task_id}]
 
-### 查看参与任务的人员 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -308,7 +340,7 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "orgs":[
                 {
                     "name": "小谷围一排",
-                    "orgs_level": "S",
+                    "org_level": "S",
                     "members": [
                         {
                             "soldier_id": 123456,
@@ -324,17 +356,20 @@ https://github.com/MBControlGroup/MBCG-BE-Task
                     "soldier_id": 123456,
                     "name": "张三",
                     "serve_office": "白云人武部",
-                    "serve_orgs": "海珠区一排",
                     "im_user_id": 123456
                 }
             ]
         }
 
 
+## 任务响应情况 [/task/response]
 
-## 任务响应情况 [/task/response/{task_id}]
+### 查看任务响应情况 [POST /task/response/{task_id}]
 
-### 查看任务响应情况 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json)
 
@@ -348,9 +383,12 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "avg_resp_time": "00:30:10"
         }
 
-## 任务的响应人员列表 [/task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}]
+### 查看任务的响应人员列表 [POST /task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
-### 查看任务的响应人员列表 [GET]
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -381,21 +419,32 @@ https://github.com/MBControlGroup/MBCG-BE-Task
     }
 
 
-## 任务集合情况 [/task/gather/{task_id}]
+## 任务集合情况 [/task/gather]
 
-### 查看任务集合情况 [GET]
+### 查看任务集合情况 [POST /task/gather/{task_id}]
+
++ Request (application/json)
+
+        {
+        }
 
 + Response 200 (application/json)
 
     + Body
 
         {
+            "accept_count": 50,
             "check_counts": 30
         }
 
-## 任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
+### 查看任务的集合人员列表 [POST /task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
 
-### 查看任务的集合人员列表 [GE
++ Request (application/json)
+
+        {
+        }
+
++ Response 200 (application/json; charset=utf-8)
 
     + Body
 
