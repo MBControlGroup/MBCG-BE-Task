@@ -62,7 +62,7 @@ type Org struct {
 	LowerOrgIDs []int     `json:"lower_org_ids,omitempty"`
 }
 
-// Soldier 用于所有JSON数据的传输
+// Soldier 用于所有JSON数据的返回
 type Soldier struct {
 	ID          int    `json:"soldier_id" orm:"column(soldier_id)"`
 	Name        string `json:"name" orm:"column(name)"`
