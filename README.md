@@ -2,11 +2,13 @@
 
 这是RESTful API 与 JSON 数据格式的详细说明
 
-因为数据比较多,可以查看API的简化版: [REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
+因为数据比较多,可以查看URL的简化版: [REST API 的简化版——幕布](https://mubu.com/doc/Hn0KEDKdm)
 
-[Apiary](https://task25.docs.apiary.io/#)
+静态数据已写入apiary：[Apiary](https://api497.docs.apiary.io/#reference/0/0/0)
 
 **注意：以下所有数据的值为空，如0（int, float），false（bool），""（string）时，有可能会不显示该项数据**
+
+目前暂未进行联调，验证功能无法使用（无法解析Cookie中的token），故管理员ID暂时默认返回3或4
 
 ## 任务
 

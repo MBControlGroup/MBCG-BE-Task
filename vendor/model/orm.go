@@ -423,7 +423,7 @@ func (db DBManager) GetOfficeName(officeID int) string {
 func (db DBManager) GetOrgMems(orgID int, needIMUser bool) []Soldier {
 	var soldiers []Soldier
 	o := orm.NewOrm()
-	rawSQL := "SELECT soldier_id, name"
+	rawSQL := "SELECT soldier_id, name "
 	if needIMUser {
 		rawSQL += ", im_user_id "
 	}
