@@ -39,7 +39,7 @@ func (db DBManager) GetAdminType(adminID int) (isOff bool, err error) {
 }
 
 // CreateTask 在表Tasks创建新任务，并在表GatherNotifications创建新的集合通知
-func (db DBManager) CreateTask(task *Task, place *Place, acmem *AcMem) error {
+func (db DBManager) CreateTask(task *Task, place *Place, acmem *AcMem) (map[int]bool, error) {
 	o := orm.NewOrm()
 	o.Begin()
 
@@ -47,19 +47,17 @@ func (db DBManager) CreateTask(task *Task, place *Place, acmem *AcMem) error {
 	err := db.insertTask(&o, task, place)
 	if err != nil {
 		o.Rollback()
-		return err
+		return nil, err
 	}
 	// 创建新的AcceptMembers，即插入TaskAcceptOffices, TaskAcceptOrgs, GatherNotifications
-	err = db.insertAcMem(&o, task.ID, acmem)
+	uniqueSoldierIDs, err := db.insertAcMem(&o, task.ID, acmem)
 	if err != nil {
 		o.Rollback()
-		return err
+		return nil, err
 	}
 	o.Commit()
 
-	// TODO: 广播：模板消息、短信
-
-	return nil
+	return uniqueSoldierIDs, nil
 }
 
 func (db DBManager) insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *Place) (int, error) {
@@ -83,6 +81,25 @@ func (db DBManager) insertPlace(o *orm.Ormer, task *Task, isOffice bool, place *
 	}
 
 	return int(placeID), nil
+}
+
+// GetPlaceName 获取地点名称
+func (db DBManager) GetPlaceName(placeID int) string {
+	var placeName string
+	o := orm.NewOrm()
+	o.Raw("SELECT place_name FROM Places WHERE place_id = ?", placeID).QueryRow(&placeName)
+	return placeName
+}
+
+// GetTelNums 获取民兵的手机号码
+func (db DBManager) GetTelNums(soldierIDs mapInt) []int {
+	telNums := make([]int, 0)
+	if len(soldierIDs) > 0 {
+		o := orm.NewOrm()
+		rawSQL := "SELECT phone_num FROM Soldiers WHERE soldier_id IN " + soldierIDs.String()
+		o.Raw(rawSQL).QueryRows(telNums)
+	}
+	return telNums
 }
 
 func (db DBManager) GetOrgIDFromAdminID(adminID int) int {
@@ -125,7 +142,7 @@ func (db DBManager) insertTask(o *orm.Ormer, task *Task, place *Place) error {
 	return nil
 }
 
-func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
+func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) (map[int]bool, error) {
 	taskIDStr := strconv.Itoa(taskID)
 	rawSQL := ""
 
@@ -137,7 +154,7 @@ func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 		}
 		_, err := (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	// 插入“接受任务的组织”
@@ -148,7 +165,7 @@ func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 		}
 		_, err := (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -159,13 +176,11 @@ func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 	for _, soldrID := range soldierIDs {
 		uniqueSoldrIDs[soldrID] = true
 	}
-
 	// 从组织ID获取民兵ID
 	soldierIDs = db.getSoldrIDsFromOrgIDs(acmem.AcOrgIDs)
 	for _, soldrID := range soldierIDs {
 		uniqueSoldrIDs[soldrID] = true
 	}
-
 	// 获取单独被选取的民兵ID
 	for _, soldrID := range acmem.AcSoldIDs {
 		uniqueSoldrIDs[soldrID] = true
@@ -181,12 +196,10 @@ func (db DBManager) insertAcMem(o *orm.Ormer, taskID int, acmem *AcMem) error {
 		}
 		_, err := (*o).Raw(rawSQL[:len(rawSQL)-1]).Exec()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
-
-	// TODO: 对所有 uniqueSoldrIDs 进行广告（模板消息、短信）操作
+	return uniqueSoldrIDs, nil
 }
 
 // 通过单位IDs获取所有民兵ID
@@ -505,6 +518,7 @@ func (db DBManager) GetSoldiersExclude(taskID int, uniqueSoldierIDs mapInt) []So
 
 type mapInt map[int]bool
 
+// 格式：(1,2,3)
 func (m mapInt) String() string {
 	str := "("
 	if len(m) >= 1 {

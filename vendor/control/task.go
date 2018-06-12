@@ -1,7 +1,12 @@
 package control
 
 import (
+	"encoding/json"
+	"fmt"
 	"model"
+	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -27,9 +32,92 @@ func (c Controller) GetCommonPlaces(adminID int) ([]model.Place, bool, error) {
 }
 
 // CreateTask 创建任务
-func (c Controller) CreateTask(task *model.Task, place *model.Place, acmem *model.AcMem) error {
-	err := db.CreateTask(task, place, acmem)
-	return err
+func (c Controller) CreateTask(task *model.Task, place *model.Place, acmem *model.AcMem) (map[int]bool, error) {
+	uniqueSoldierIDs, err := db.CreateTask(task, place, acmem)
+	return uniqueSoldierIDs, err
+}
+
+// SendMessgs 向民兵发送“查看新任务”的短信、语音
+func (c Controller) SendMessgs(task *model.Task, soldierIDs map[int]bool) {
+	isOffice, _ := db.GetAdminType(task.AdminID)
+	officeOrgName := "【" + db.GetOfficeOrgNameFromAdmin(task.AdminID, isOffice) + "】"
+	placeName := "【" + db.GetPlaceName(task.PlaceID) + "】"
+	detail := "【" + task.Detail + "】"
+	telNums := db.GetTelNums(soldierIDs)
+
+	messg := messgTemplate{
+		TelNums:     phoneNums(telNums).String(),
+		TemplateNum: "3",
+		Var1:        officeOrgName,
+		Var2:        placeName,
+		Var3:        detail,
+	}
+	messgTemplateBytes, _ := json.Marshal(&messg)
+	messgTemplatePayload := strings.NewReader(string(messgTemplateBytes))
+	// 调用发送短信接口
+	{
+		resp, err := http.Post("http://localhost:8080/sendInterfaceTemplateSms?vars=3", "application/json", messgTemplatePayload)
+		if err != nil {
+			fmt.Println("调用发送短信接口 错误：", err)
+		} else {
+			defer resp.Body.Close()
+			fmt.Println("调用发送短信接口：", resp.StatusCode, resp.Status)
+		}
+	}
+
+	voice := voiceTemplate{
+		Action:      "Webcall",
+		ServiceNo:   "02033275113",
+		Exten:       phoneNums(telNums).String(),
+		WebCallType: "asynchronous",
+		CallBackUrl: "http://172.17.0.1:8080/webCall/callback",
+		Variable:    "role:2",
+	}
+	voiceTemplateBytes, _ := json.Marshal(&voice)
+	voiceTemplatePayload := strings.NewReader(string(voiceTemplateBytes))
+	// 调用发送语音接口
+	{
+		resp, err := http.Post("http://localhost:8080/webCall", "application/json", voiceTemplatePayload)
+		if err != nil {
+			fmt.Println("调用发送语音接口 错误：", err)
+		} else {
+			defer resp.Body.Close()
+			fmt.Println("调用发送语音接口：", resp.StatusCode, resp.Status)
+		}
+	}
+}
+
+// 语音模板
+type voiceTemplate struct {
+	Action      string
+	ServiceNo   string
+	Exten       string
+	WebCallType string
+	CallBackUrl string
+	Variable    string
+}
+
+type phoneNums []int
+
+// 格式：1,2,3
+func (p phoneNums) String() string {
+	str := ""
+	for _, phoneNum := range p {
+		str += strconv.Itoa(phoneNum) + ","
+	}
+	if len(str) == 0 {
+		return str
+	}
+	return str[:len(str)-1]
+}
+
+// 发送短信模板
+type messgTemplate struct {
+	TelNums     string `json:"num"`
+	TemplateNum string `json:"templateNum"`
+	Var1        string `json:"var1"` // 发送单位
+	Var2        string `json:"var2"` // 集合地点
+	Var3        string `json:"var3"` // 集合事由
 }
 
 // GetOrgInfoAndMems 获取下属组织及成员

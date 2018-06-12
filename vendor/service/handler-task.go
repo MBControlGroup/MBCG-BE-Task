@@ -127,11 +127,12 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		fmt.Println(reqPlace)
 		fmt.Println(reqAcMem)
 
-		err = Manager.CreateTask(&reqTask, &reqPlace, &reqAcMem)
+		uniqueSoldierIDs, err := Manager.CreateTask(&reqTask, &reqPlace, &reqAcMem)
 		if err != nil {
 			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
 		} else {
 			w.WriteHeader(http.StatusCreated)
+			go Manager.SendMessgs(&reqTask, uniqueSoldierIDs) // 发送短信、语音
 		}
 	}
 }
