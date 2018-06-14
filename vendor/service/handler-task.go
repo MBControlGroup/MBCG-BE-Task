@@ -19,9 +19,9 @@ import (
 var Manager control.Controller
 
 type tokenMessg struct {
-	Success bool
-	Detail  string
-	Id      int
+	Success bool   `json:"success"`
+	Detail  string `json:"detail"`
+	Id      int    `json:"id"`
 }
 
 const (
@@ -177,7 +177,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 // getAdminID 读取Request中的Cookie, 获取并解析token, 返回管理员ID
 // 若出错，会对ResponseWriter进行写入
 func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
-	return 1, nil
+	//return 1, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	// 获取cookie中的token
@@ -210,5 +210,6 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
 		return 0, errors.New(messg.Detail)
 	}
+	fmt.Println("adminid:", messg.Id)
 	return messg.Id, nil // token合法，返回 AdminID
 }
