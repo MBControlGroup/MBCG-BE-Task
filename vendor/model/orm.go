@@ -97,7 +97,7 @@ func (db DBManager) GetTelNums(soldierIDs mapInt) []int {
 	if len(soldierIDs) > 0 {
 		o := orm.NewOrm()
 		rawSQL := "SELECT phone_num FROM Soldiers WHERE soldier_id IN " + soldierIDs.String()
-		o.Raw(rawSQL).QueryRows(telNums)
+		o.Raw(rawSQL).QueryRows(&telNums)
 	}
 	return telNums
 }
@@ -432,9 +432,9 @@ func (db DBManager) GetOfficeName(officeID int) string {
 	return officeName
 }
 
-// 通过OrgID获取成员的soldier_id, name
+// GetOrgMems 通过OrgID获取成员的soldier_id, name
 func (db DBManager) GetOrgMems(orgID int, needIMUser bool) []Soldier {
-	var soldiers []Soldier
+	soldiers := make([]Soldier, 0)
 	o := orm.NewOrm()
 	rawSQL := "SELECT soldier_id, name "
 	if needIMUser {
