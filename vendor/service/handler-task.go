@@ -30,7 +30,7 @@ const (
 	internalServerErrorMsg = "很抱歉，服务器出错了"
 
 	host           = "http://localhost"
-	tokenValidPort = ":8080"
+	tokenValidPort = ":9200"
 	tokenValidPath = "/tokenValid"
 	loginPath      = "/signin"
 )

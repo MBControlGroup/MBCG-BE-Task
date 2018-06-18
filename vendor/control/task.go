@@ -56,7 +56,7 @@ func (c Controller) SendMessgs(task *model.Task, soldierIDs map[int]bool) {
 	messgTemplatePayload := strings.NewReader(string(messgTemplateBytes))
 	// 调用发送短信接口
 	{
-		resp, err := http.Post("http://localhost:8080/sendInterfaceTemplateSms?vars=3", "application/json", messgTemplatePayload)
+		resp, err := http.Post("http://localhost:9400/sendInterfaceTemplateSms?vars=3", "application/json", messgTemplatePayload)
 		if err != nil {
 			fmt.Println("调用发送短信接口 错误：", err)
 		} else {
@@ -77,7 +77,7 @@ func (c Controller) SendMessgs(task *model.Task, soldierIDs map[int]bool) {
 	voiceTemplatePayload := strings.NewReader(string(voiceTemplateBytes))
 	// 调用发送语音接口
 	{
-		resp, err := http.Post("http://localhost:8080/webCall", "application/json", voiceTemplatePayload)
+		resp, err := http.Post("http://localhost:9400/webCall", "application/json", voiceTemplatePayload)
 		if err != nil {
 			fmt.Println("调用发送语音接口 错误：", err)
 		} else {
