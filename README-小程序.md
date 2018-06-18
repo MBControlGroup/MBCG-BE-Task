@@ -1,7 +1,10 @@
+# 任务管理-小程序
+这是小程序端的接口说明
+
 ## 新任务
 ### 获取新任务 [/task/miniprogram/new-task] [GET]
-### 接受任务 [/task/miniprogram/]
-### 拒绝任务
+### 接受任务 [/task/miniprogram/accept] [PUT]
+### 拒绝任务 [/task/miniprogram/refuse] [PUT]
 
 ## 执行中的任务
 ### 获取执行中的任务
