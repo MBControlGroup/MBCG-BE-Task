@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	orm.Debug = true
+	//orm.Debug = true
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", "mbcsdev:mbcsdev2018@tcp(222.200.180.59:9000)/MBDB?charset=utf8")
 	//orm.RegisterDataBase("default", "mysql", "root:root@tcp(127.0.0.1:3306)/mb?charset=utf8")
@@ -131,9 +131,10 @@ func (db DBManager) insertTask(o *orm.Ormer, task *Task, place *Place) error {
 	}
 
 	rawSQL := "INSERT INTO Tasks"
-	rawSQL += "(title, mem_count, launch_admin_id, gather_datetime, detail, gather_place_id, finish_datetime)"
-	rawSQL += "VALUES(?,?,?,?,?,?,?)"
-	result, err := (*o).Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish).Exec()
+	rawSQL += "(title, mem_count, launch_admin_id, gather_datetime, detail, gather_place_id, finish_datetime, launch_datetime)"
+	rawSQL += "VALUES(?,?,?,?,?,?,?, ?)"
+	CSTLocation, _ := time.LoadLocation("Asia/Chongqing")
+	result, err := (*o).Raw(rawSQL, task.Title, task.Count, task.AdminID, task.Gather, task.Detail, task.PlaceID, task.Finish, time.Now().In(CSTLocation).String()[:19]).Exec()
 	if err != nil {
 		return err
 	}

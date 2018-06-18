@@ -29,8 +29,8 @@ const (
 	reLoginMsg             = "登录超时，请重新登录"
 	internalServerErrorMsg = "很抱歉，服务器出错了"
 
-	host           = "http://localhost"
-	tokenValidPort = ":8080"
+	host           = "http://222.200.180.59"
+	tokenValidPort = ":9200"
 	tokenValidPath = "/tokenValid"
 	loginPath      = "/signin"
 )
