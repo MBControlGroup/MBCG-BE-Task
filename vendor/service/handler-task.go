@@ -15,7 +15,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-// DBInfo 全局的数据层管理器
+// Manager 全局的控制层管理器
 var Manager control.Controller
 
 type tokenMessg struct {
