@@ -25,9 +25,8 @@ type tokenMessg struct {
 }
 
 const (
-	tokenCookieName        = "token"
-	reLoginMsg             = "登录超时，请重新登录"
-	internalServerErrorMsg = "很抱歉，服务器出错了"
+	tokenCookieName = "token"
+	reLoginMsg      = "登录超时，请重新登录"
 
 	host           = "http://222.200.180.59"
 	tokenValidPort = ":9200"
@@ -35,18 +34,26 @@ const (
 	loginPath      = "/signin"
 )
 
+/*
 type redirectMsg struct {
 	Msg string `json:"cnmsg"`
 	URL string `json:"url"`
 }
-
-type serverErrorMsg struct {
-	Msg string `json:"cnmsg"`
-}
+*/
 
 type taskID struct {
 	ID int `json:"task_id"`
 }
+
+type returnMessg struct {
+	Code  int         `json:"code"`
+	Enmsg string      `json:"enmsg"` // 一般为ok
+	Cnmsg string      `json:"cnmsg"` // "成功"
+	Data  interface{} `json:"data,omitempty"`
+}
+
+var internalServerErrorMsg = returnMessg{http.StatusInternalServerError, "error", "很抱歉，服务器出错了", nil}
+var redirectMsg = returnMessg{http.StatusFound, "error", "登录超时，请重新登录", nil}
 
 // 结束任务, /task [PUT]
 func endTask(formatter *render.Render) http.HandlerFunc {
@@ -64,9 +71,9 @@ func endTask(formatter *render.Render) http.HandlerFunc {
 		// 结束任务
 		err := Manager.EndTask(taskid.ID, 123456) // 将来可能会进行权限控制. 非该任务的发起管理员都不能结束任务
 		if err != nil {                           // DB UPDATE 出错
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 		} else { // 成功结束任务
-			w.WriteHeader(http.StatusNoContent)
+			formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", nil})
 		}
 	}
 }
@@ -89,11 +96,11 @@ func basicInfo(formatter *render.Render) http.HandlerFunc {
 		// 获取Admin所在组织/单位的常用地点
 		places, isOffice, err := Manager.GetCommonPlaces(adminID)
 		if err != nil { // 查询出错
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 			return
 		}
 		info := BasicInfo{IsOff: isOffice, Places: places}
-		formatter.JSON(w, http.StatusOK, info)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", info})
 	}
 }
 
@@ -129,9 +136,9 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 
 		uniqueSoldierIDs, err := Manager.CreateTask(&reqTask, &reqPlace, &reqAcMem)
 		if err != nil {
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 		} else {
-			w.WriteHeader(http.StatusCreated)
+			formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "任务发布成功", nil})
 			go Manager.SendMessgs(&reqTask, uniqueSoldierIDs) // 发送短信、语音
 		}
 	}
@@ -148,9 +155,9 @@ func orgs(formatter *render.Render) http.HandlerFunc {
 		orgInfo, err := Manager.GetOrgInfoAndMems(adminID)
 		if err != nil {
 			fmt.Println(err)
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 		}
-		formatter.JSON(w, http.StatusOK, orgInfo)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", orgInfo})
 	}
 }
 
@@ -166,11 +173,11 @@ func offices(formatter *render.Render) http.HandlerFunc {
 		// 从AdminID获取Offices和成员
 		officeInfo, err := Manager.GetOfficeInfoAndMems(adminID)
 		if err != nil {
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 			return
 		}
 
-		formatter.JSON(w, http.StatusOK, officeInfo)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", officeInfo})
 	}
 }
 
@@ -183,7 +190,7 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	// 获取cookie中的token
 	c, err := r.Cookie(tokenCookieName)
 	if err != nil || c.Value == "" { // 用户可能登录超时，需重新登录
-		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		formatter.JSON(w, http.StatusFound, redirectMsg)
 		log.Println(err)
 		return 0, err
 	}
@@ -195,7 +202,7 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	}{token})
 	resp, err := http.Post(host+tokenValidPort+tokenValidPath, "application/json", bytes.NewReader(reqBody))
 	if err != nil {
-		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		formatter.JSON(w, http.StatusFound, redirectMsg)
 		log.Println(err)
 		return 0, errors.New("error: unable to validate identiy")
 	}
@@ -207,7 +214,7 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	json.Unmarshal(reqBody, &messg)
 	fmt.Println(messg)
 	if !messg.Success { // 可能是token不合法
-		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg{reLoginMsg, loginPath})
+		formatter.JSON(w, http.StatusTemporaryRedirect, redirectMsg)
 		return 0, errors.New(messg.Detail)
 	}
 	fmt.Println("adminid:", messg.Id)

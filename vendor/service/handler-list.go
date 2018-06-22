@@ -33,10 +33,10 @@ func getTaskList(formatter *render.Render, isFinish bool) http.HandlerFunc {
 		taskList, err := Manager.GetTaskList(reqData.AdminID, reqData.CountsPerPage, reqData.CountsPerPage*(reqData.CurPage-1), isFinish)
 		if err != nil {
 			fmt.Println(err)
-			formatter.JSON(w, http.StatusInternalServerError, serverErrorMsg{internalServerErrorMsg})
+			formatter.JSON(w, http.StatusInternalServerError, internalServerErrorMsg)
 			return
 		}
 
-		formatter.JSON(w, http.StatusOK, taskList)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", taskList})
 	}
 }

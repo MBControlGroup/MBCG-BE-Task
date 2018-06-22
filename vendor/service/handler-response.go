@@ -16,7 +16,7 @@ func response(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 		response := Manager.GetTaskResponse(reqData.TaskID)
-		formatter.JSON(w, http.StatusOK, response)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", response})
 	}
 }
 
@@ -30,6 +30,6 @@ func response_mem(formatter *render.Render) http.HandlerFunc {
 		b, _ := json.Marshal(reqData)
 		fmt.Println(string(b))
 		responseMem := Manager.GetTaskRespMems(reqData.TaskID, reqData.CountsPerPage*(reqData.CurPage-1), reqData.CountsPerPage)
-		formatter.JSON(w, http.StatusOK, responseMem)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", responseMem})
 	}
 }

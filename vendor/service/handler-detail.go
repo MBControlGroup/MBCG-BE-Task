@@ -18,7 +18,7 @@ func detail(formatter *render.Render) http.HandlerFunc {
 		}
 
 		taskInfo, _ := Manager.GetTaskDetail(reqData.TaskID, reqData.AdminID)
-		formatter.JSON(w, http.StatusOK, taskInfo)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", taskInfo})
 	}
 }
 
@@ -32,7 +32,7 @@ func detail_mem(formatter *render.Render) http.HandlerFunc {
 		}
 
 		offices, orgs, soldiers := Manager.GetAttendMems(reqData.TaskID)
-		formatter.JSON(w, http.StatusOK, detailMems{offices, orgs, soldiers})
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", detailMems{offices, orgs, soldiers}})
 	}
 }
 

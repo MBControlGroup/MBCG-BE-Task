@@ -14,7 +14,7 @@ func gather(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 		gatherDetail := Manager.GetTaskGather(reqData.TaskID)
-		formatter.JSON(w, http.StatusOK, gatherDetail)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", gatherDetail})
 	}
 }
 
@@ -26,6 +26,6 @@ func gather_mem(formatter *render.Render) http.HandlerFunc {
 			return
 		}
 		memList := Manager.GetTaskGatherMems(reqData.TaskID, reqData.CountsPerPage*(reqData.CurPage-1), reqData.CountsPerPage)
-		formatter.JSON(w, http.StatusOK, memList)
+		formatter.JSON(w, http.StatusOK, returnMessg{http.StatusOK, "ok", "成功", memList})
 	}
 }
