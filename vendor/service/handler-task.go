@@ -186,6 +186,7 @@ func offices(formatter *render.Render) http.HandlerFunc {
 func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error) {
 	//return 1, nil
 	formatter := render.New(render.Options{IndentJSON: true})
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// 获取cookie中的token
 	c, err := r.Cookie(tokenCookieName)

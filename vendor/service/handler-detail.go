@@ -52,6 +52,8 @@ func parse(w http.ResponseWriter, r *http.Request, needAdmin, needTask, needPage
 			return &res, err
 		}
 		res.AdminID = adminID
+	} else {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 	}
 	// TaskID
 	reqData := mux.Vars(r)
