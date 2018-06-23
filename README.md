@@ -239,6 +239,7 @@ response:
 				"title"			:"消防演习",		// 任务主题
 				"launch_admin"		:"海珠区一排",		// 发起单位/组织
 				"launch_datetime"	:"2018-05-06 12:00:00",	// 发起时间
+				"finish_datetime"	:"2018-05-07 08:00:00",	// 结束时间
 				"gather_place"		:"新天地",		// 集合地点
 				"mem_count"		:30,			// 目标征集人数
 				"response_count"	:100,			// 响应人数

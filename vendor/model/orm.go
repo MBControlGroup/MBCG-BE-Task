@@ -346,6 +346,8 @@ func (db DBManager) GetTasksFromAdminIDs(adminIDs arrayInt, isFinish bool, offse
 	rawSQL += "t.launch_datetime launch_datetime, p.place_name place_name "
 	if !isFinish { // 执行中的任务需要有gather_datetime. 已完成任务就不需要
 		rawSQL += ", gather_datetime "
+	} else {
+		rawSQL += ", finish_datetime "
 	}
 	rawSQL += "FROM Tasks t, Places p "
 	rawSQL += "WHERE launch_admin_id IN " + fmt.Sprint(adminIDs)
