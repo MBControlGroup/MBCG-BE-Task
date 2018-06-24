@@ -359,14 +359,15 @@ response:
 
 
 ## 任务响应情况
-响应情况包括响应人数、接受人数、平均响应耗时，这些信息在“查看任务响应情况”中。
-
-响应情况还包括收到集合通知的人员列表，列表包含响应状态（未响应、接受、拒绝）和响应耗时等，这些信息在“查看任务的响应人员列表”中。
-#### 查看任务响应情况 [/task/response/{task_id}] [GET]
-若要查看个人响应情况的列表,请访问 /task/response/mem/{task_id}/{item_counts_per_page}/{cur_page}
+响应情况包括响应人数、接受人数、平均响应耗时、收到集合通知的人员列表，列表包含响应状态（未响应、接受、拒绝）和响应耗时等。
+### 查看任务响应情况 [/task/response/{task_id}] [GET]
+任务响应情况及响应人员列表
 ```
 request:
-	null
+	{
+		"pc"	:1,	// 当前页
+		"pn"	:10	// 每页显示人数
+	}
 response:
 	200 OK
 	{
@@ -375,28 +376,9 @@ response:
 		"response_count":70,		// 响应人数
 		"accept_count"	:30,		// 接受人数
 		"avg_resp_time"	:"00:30:10"	// 平均响应耗时
-	}
-
-	307 Temporary Redirect
-	{
-		"cnmsg":"登录超时，请重新登录",
-		"url":"/user"
-	}
-```
-
-#### 查看任务的响应人员列表 [/task/response/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
-item_counts_per_page: 每页显示人员的数量
-
-cur_page: 当前页数
-```
-request:
-	null
-response:
-	200 OK
-	{
-		"total_pages":1,	// 总页数
+		"total_pages":1,	// 响应人员列表的总页数
 		"total_mem":10,		// 收到集合通知的总人数 
-		"data":[
+		"mem_list":[
 			{
 				"soldier_id"	:123456,		// 民兵id
 				"name"		:"张三",			// 民兵姓名
@@ -417,10 +399,11 @@ response:
 	}
 ```
 
+
 ## 任务集合情况
 集合情况包括签到人数，这些信息在“查看任务集合情况”中。
 
-集合情况还包括签到的人员列表，列表包含是否已签到等，这些信息在“查看任务的集合人员列表”中。
+集合情况还包括签到的人员列表，列表包含是否已签到等。
 
 ### 查看任务集合情况 [/task/gather/{task_id}] [GET]
 ```
@@ -431,28 +414,9 @@ response:
 	{
 		"accept_count"	:50		// 接受任务人数
 		"check_count"	:30		// 签到人数
-	}
-
-	307 Temporary Redirect
-	{
-		"cnmsg":"登录超时，请重新登录",
-		"url":"/user"
-	}
-```
-
-### 查看任务的集合人员列表 [/task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}] [GET]
-item_counts_per_page: 每页显示人员的数量
-
-cur_page: 当前页数
-```
-request:
-	null
-response:
-	200 OK
-	{
-		"total_pages":1,	// 总页数
+		"total_pages":1,	// 集合人员列表的总页数
 		"total_mem":10,		// 接受任务的总人数 
-		"data":[
+		"mem_list":[
 			{
 				"soldier_id"	:123456,		// 民兵id
 				"name"		:"张三",			// 民兵姓名

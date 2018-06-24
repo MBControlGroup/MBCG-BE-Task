@@ -114,9 +114,9 @@ func createTask(formatter *render.Render) http.HandlerFunc {
 		}
 
 		// 获取http.Request中的Body
-		reqBody, _ := ioutil.ReadAll(r.Body)              // 读取http.Request的Body
-		reqBytes, _ := url.QueryUnescape(string(reqBody)) // 把Body转为bytes
+		reqBody, _ := ioutil.ReadAll(r.Body) // 读取http.Request的Body
 		defer r.Body.Close()
+		reqBytes, _ := url.QueryUnescape(string(reqBody)) // 把Body转为bytes
 
 		// 解析Request.Body中的JSON数据
 		var (

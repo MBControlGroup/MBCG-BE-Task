@@ -74,6 +74,6 @@ func parse(w http.ResponseWriter, r *http.Request, needAdmin, needTask, needPage
 type result struct {
 	AdminID       int
 	TaskID        int
-	CountsPerPage int
-	CurPage       int
+	CountsPerPage int `json:"pn"`
+	CurPage       int `json:"pc"`
 }

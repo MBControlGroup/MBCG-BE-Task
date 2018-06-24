@@ -2,14 +2,14 @@ package control
 
 import "math"
 
-type gatherDetail struct {
+type GatherDetail struct {
 	AcceptCount int `json:"accept_count"`
 	CheckCount  int `json:"check_count"`
 }
 
 // GetTaskGather 获取任务的集合情况：签到人数
-func (c Controller) GetTaskGather(taskID int) *gatherDetail {
-	gather := gatherDetail{}
+func (c Controller) GetTaskGather(taskID int) *GatherDetail {
+	gather := GatherDetail{}
 	gather.CheckCount = db.GetCheckCountsFromTask(taskID)
 	gather.AcceptCount = db.GetTaskAcceptCount(taskID)
 	return &gather

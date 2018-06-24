@@ -9,8 +9,8 @@ import (
 )
 
 // GetTaskResponse 通过TaskID获取任务响应情况
-func (c Controller) GetTaskResponse(taskID int) *response {
-	resp := response{}
+func (c Controller) GetTaskResponse(taskID int) *TaskResp {
+	resp := TaskResp{}
 	var wg sync.WaitGroup
 	// 任务目标征集人数 memCount
 	memCount, launchDateStr := db.GetTaskMemCountLaunchDate(taskID)
@@ -53,7 +53,7 @@ func (c Controller) GetTaskResponse(taskID int) *response {
 	return &resp
 }
 
-type response struct {
+type TaskResp struct {
 	MemCount    int    `json:"mem_count" orm:"column(mem_count)"`
 	NotifyCount int    `json:"notify_count" orm:"column(notify_count)"`
 	RespCount   int    `json:"response_count" orm:"resp_count"`
@@ -74,5 +74,5 @@ func (c Controller) GetTaskRespMems(taskID, offset, countsPerPage int) *MemList 
 type MemList struct {
 	PageCount int             `json:"total_pages"`
 	MemCount  int             `json:"total_mem"`
-	Members   []model.Soldier `json:"data"`
+	Members   []model.Soldier `json:"mem_list"`
 }
