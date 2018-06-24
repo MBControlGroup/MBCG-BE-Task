@@ -408,7 +408,10 @@ response:
 ### 查看任务集合情况 [/task/gather/{task_id}] [GET]
 ```
 request:
-	null
+	{
+		"pc"	:1,	// 当前页
+		"pn"	:10	// 每页显示人数
+	}
 response:
 	200 OK
 	{
