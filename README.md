@@ -35,7 +35,7 @@ request:
 response:
 	201 Created
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -69,7 +69,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -85,7 +85,7 @@ request:
 response:
 	204 No Content	// 成功结束任务
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -136,7 +136,7 @@ response:
 		}
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -170,7 +170,7 @@ response:
 		}
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -214,7 +214,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -250,7 +250,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -289,7 +289,7 @@ response:
 		// 若任务已结束，则不会显示最后的三项status, detail, is_launcher
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -350,7 +350,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -392,7 +392,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
@@ -415,7 +415,6 @@ request:
 response:
 	200 OK
 	{
-		"accept_count"	:50		// 接受任务人数
 		"check_count"	:30		// 签到人数
 		"total_pages":1,	// 集合人员列表的总页数
 		"total_mem":10,		// 接受任务的总人数 
@@ -432,7 +431,7 @@ response:
 		]
 	}
 
-	307 Temporary Redirect
+	302 Temporary Redirect
 	{
 		"cnmsg":"登录超时，请重新登录",
 		"url":"/user"
