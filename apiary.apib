@@ -371,6 +371,8 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 + Request (application/json)
 
         {
+            "pc": 10,
+            "pn": 1
         }
 
 + Response 200 (application/json)
@@ -382,43 +384,39 @@ https://github.com/MBControlGroup/MBCG-BE-Task
             "notify_count": 100,
             "response_count": 70,
             "accept_count": 30,
-            "avg_resp_time": "00:30:10"
+            "avg_resp_time": "00:30:10",
+            "total_pages": 1,
+            "total_mem": 10,
+            "mem_list": [
+                {
+                    "soldier_id": 1,
+                    "name": "张三",
+                    "im_user_id": 1,
+                    "phone": 13600000000,
+                    "serve_office": "海珠人武部",
+                    "status": "AC",
+                    "resp_time": "2018-05-06 12:02:00"
+                },
+                {
+                    "soldier_id": 2,
+                    "name": "李四",
+                    "im_user_id": 2,
+                    "phone": 13600001111,
+                    "serve_office": "海珠人武部",
+                    "status": "RF",
+                    "resp_time": "2018-05-06 12:01:00"
+                },
+                {
+                    "soldier_id": 3,
+                    "name": "王五",
+                    "im_user_id": 3,
+                    "phone": 13600002222,
+                    "serve_office": "海珠人武部",
+                    "status": "UR",
+                    "resp_time": "2018-05-06 12:00:00"
+                }
+            ]
         }
-
-### 查看任务的响应人员列表 [POST /task/working/response/mem/{task_id}/{item_counts_per_page}/{cur_page}]
-
-+ Request (application/json)
-
-        {
-        }
-
-+ Response 200 (application/json; charset=utf-8)
-
-    + Body
-
-    {
-        "total_pages": 1,
-        "total_mem": 10,
-        "data":[
-            {
-                "soldier_id": 123456,
-                "name": "张三",
-                "im_user_id": 123456,
-                "phone": 13600000000,
-                "serve_office": "海珠人武部",
-                "status": "AC",
-                "resp_time": "2018-05-06 12:02:00"
-            },{
-                "soldier_id": 654321,
-                "name": "李四",
-                "im_user_id": 654321,
-                "phone": 13611111111,
-                "serve_office": "海珠人武部",
-                "status": "AC",
-                "resp_time": "2018-05-06 12:12:00"
-            }
-        ]
-    }
 
 
 ## 任务集合情况 [/task/gather]
@@ -428,46 +426,42 @@ https://github.com/MBControlGroup/MBCG-BE-Task
 + Request (application/json)
 
         {
+            "pc": 10,
+            "pn": 1
         }
 
 + Response 200 (application/json)
 
     + Body
 
-        {
-            "accept_count": 50,
-            "check_counts": 30
-        }
-
-### 查看任务的集合人员列表 [POST /task/gather/mem/{task_id}/{item_counts_per_page}/{cur_page}]
-
-+ Request (application/json)
-
-        {
-        }
-
-+ Response 200 (application/json; charset=utf-8)
-
-    + Body
-
-        {
+       {
+            "check_count": 30,
             "total_pages": 1,
             "total_mem": 10,
-            "data":[
+            "mem_list": [
                 {
-                    "soldier_id": 123456,
+                    "soldier_id": 1,
                     "name": "张三",
-                    "im_user_id": 123456,
+                    "im_user_id": 1,
                     "phone": 13600000000,
                     "serve_office": "海珠人武部",
                     "status": "CH"
-                },{
-                    "soldier_id": 654321,
+                },
+                {
+                    "soldier_id": 2,
                     "name": "李四",
-                    "im_user_id": 64321,
-                    "phone": 13611111111,
+                    "im_user_id": 2,
+                    "phone": 13600001111,
                     "serve_office": "海珠人武部",
                     "status": "UN"
+                },
+                {
+                    "soldier_id": 3,
+                    "name": "王五",
+                    "im_user_id": 3,
+                    "phone": 13600003333,
+                    "serve_office": "海珠人武部",
+                    "status": "CH"
                 }
             ]
         }
