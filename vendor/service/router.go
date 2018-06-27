@@ -10,11 +10,11 @@ import (
 func NewServer() *negroni.Negroni {
 	n := negroni.New(negroni.NewRecovery(), negroni.NewLogger())
 	mx := mux.NewRouter()
-
 	formatter := render.New(render.Options{IndentJSON: true})
 
 	initRoutes(mx, formatter)
 	n.UseHandler(mx)
+
 	return n
 }
 
@@ -36,4 +36,6 @@ func initRoutes(mx *mux.Router, formatter *render.Render) {
 
 	mx.HandleFunc("/task/gather/{taskID}", gather(formatter)).Methods("POST") // 查看任务集合情况
 	//mx.HandleFunc("/task/gather/mem/{taskID}/{countsPerPage}/{curPage}", gather_mem(formatter)).Methods("POST") // 查看任务的集合人员列表
+
+	mx.Methods("OPTIONS").HandlerFunc(cors)
 }
