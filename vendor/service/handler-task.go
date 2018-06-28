@@ -187,6 +187,7 @@ func getAdminID(w http.ResponseWriter, r *http.Request) (adminID int, err error)
 	//return 1, nil
 	formatter := render.New(render.Options{IndentJSON: true})
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 
 	// 获取cookie中的token
 	c, err := r.Cookie(tokenCookieName)
